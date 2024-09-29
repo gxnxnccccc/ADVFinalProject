@@ -4,17 +4,19 @@ import {
   Toolbar,
   Typography,
   Button,
-  Menu,
-  MenuItem,
   Box,
-  ListItemIcon,
 } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import FunctionsIcon from "@mui/icons-material/Functions";
-import Divider from "@mui/material/Divider";
 import PersonIcon from "@mui/icons-material/Person";
-import useBearStore from "@/store/useBearStore";
+import { create } from "zustand";
+
+// Zustand state management
+const useBearStore = create((set) => ({
+  appName: "MOVIEPOP",
+  setAppName: (name) => set(() => ({ appName: name })),
+}));
 
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
@@ -22,24 +24,32 @@ const NavigationLayout = ({ children }) => {
 
   return (
     <>
-      <AppBar position="sticky" sx={{ backgroundColor: "#ff5e15" }}>
+      {/* Use fixed positioning for the AppBar */}
+      <AppBar position="fixed" sx={{ backgroundColor: "#000000", width: '100%' }}>
         <Toolbar>
           <Link href={"/"}>
-            <FunctionsIcon sx={{ color: "#ffffff" }} fontSize="large" />
+            <img src="/Logo_1.png" alt="Logo" style={{ height: '60px', cursor: 'pointer' }} />
           </Link>
+
           <Typography
             variant="body1"
             sx={{
-              fontSize: "22px",
+              fontSize: "30px",
               fontWeight: 500,
               color: "#ffffff",
               padding: "0 10px",
-              fontFamily: "Prompt",
+              fontFamily: "Play Chickens",
             }}>
             {appName}
           </Typography>
-          <NavigationLink href="/page1" label="Page1" />
-          <div style={{ flexGrow: 1 }} />
+
+          {/* Navigation links */}
+          <NavigationLink href="/main" label="MAIN" font='Proelium' />
+          <NavigationLink href="/movies" label="MOVIES" font='Proelium' />
+          <NavigationLink href="/showtimes" label="SHOWTIMES" font='Proelium' />
+
+          <Box sx={{ flexGrow: 1 }} />
+
           <Button
             color="#ffffff"
             onClick={() => {
@@ -49,25 +59,29 @@ const NavigationLayout = ({ children }) => {
           </Button>
         </Toolbar>
       </AppBar>
-      <main>{children}</main>
+
+      {/* Add margin to main content to avoid overlap */}
+      <main style={{ marginTop: '64px' }}>{children}</main> {/* Adjust margin if needed */}
     </>
   );
 };
 
-const NavigationLink = ({ href, label }) => {
+// Navigation link component
+const NavigationLink = ({ href, label, font }) => {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <Typography
         variant="body1"
         sx={{
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 500,
-          // textTransform: "uppercase",
           color: "#fff",
-          padding: "0 10px", // Add padding on left and right
+          padding: "0 10px",
+          margin: "0 35px",
+          fontFamily: font,
         }}>
         {label}
-      </Typography>{" "}
+      </Typography>
     </Link>
   );
 };

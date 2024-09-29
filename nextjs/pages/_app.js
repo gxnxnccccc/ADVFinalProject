@@ -1,10 +1,11 @@
 import "@/styles/globals.css";
+import "@/styles/style.css";
 import React from "react";
 import { useRouter } from "next/router";
 import { AppCacheProvider } from "@mui/material-nextjs/v13-pagesRouter";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Roboto } from "next/font/google";
-import Layout from "@/components/layout";
+import NavigationLayout from "@/components/NavigationBar"; // Ensure this path is correct
 import useBearStore from "@/store/useBearStore";
 import Head from "next/head";
 import { Backdrop, CircularProgress } from "@mui/material";
@@ -31,7 +32,7 @@ export default function App({ Component, pageProps, props }) {
   React.useEffect(() => {
     console.log("App load", pageName, router.query);
     setLoading(true);
-    // TODO: This section is use to handle page change.
+    // TODO: This section is used to handle page change.
     setAppName("Say Hi")
     setLoading(false);
   }, [router, pageName]);
@@ -47,9 +48,14 @@ export default function App({ Component, pageProps, props }) {
 
       <AppCacheProvider {...props}>
         <ThemeProvider theme={theme}>
-          <Layout>
+          {/* Conditionally render NavigationLayout */}
+          {pageName !== "/register" && pageName !== "/login" ? (
+            <NavigationLayout>
+              <Component {...pageProps} />
+            </NavigationLayout>
+          ) : (
             <Component {...pageProps} />
-          </Layout>
+          )}
         </ThemeProvider>
       </AppCacheProvider>
     </React.Fragment>

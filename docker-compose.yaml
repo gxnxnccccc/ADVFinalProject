@@ -6,8 +6,17 @@ services:
       - "3000:3000"
     volumes:
       - ./nextjs:/src
-      - /src/node_modules # This masks the node_modules directory from the host system and prevents it from being mapped from your local filesystem. The container will manage its own node_modules directory.
+      - /src/node_modules
     working_dir: /src
     command: npm run dev
 
-
+  db: # This is the database service
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finalproject
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
