@@ -15,7 +15,7 @@ const LoginPage = () => {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
 
-  // State for notifications (you can replace this with a snackbar if needed)
+  // State for notifications
   const [notification, setNotification] = useState('');
 
   const handleSignInClick = () => {

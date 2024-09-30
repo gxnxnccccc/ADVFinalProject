@@ -1,12 +1,11 @@
-from typing import Union
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from database import *
+from database import connect_db, disconnect_db
 from routes.users import router
-
 
 app = FastAPI()
 
+# Include the users router with the '/api' prefix
 app.include_router(router, prefix="/api")
 
 @app.on_event("startup")

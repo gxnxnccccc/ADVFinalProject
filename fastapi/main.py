@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from routes import users  # Importing the users router
+from routes.users import router  # Ensure this imports correctly
+from database import connect_db, disconnect_db
 
 app = FastAPI()
 
@@ -13,5 +14,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the user routes
-app.include_router(users.router)
+# Include the user router with a specified prefix
+app.include_router(router, prefix="/api")
+
+# Event handler for application startup
+@app.on_event("startup")
+async def startup():
+    await connect_db()
+
+# Event handler for application shutdown
+@app.on_event("shutdown")
+async def shutdown():
+    await disconnect_db()
+
+# Example route to test the application
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the FastAPI application!"}
