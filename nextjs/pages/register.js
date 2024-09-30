@@ -61,7 +61,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await fetch('/api/users/create', {
+      const response = await fetch('/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
