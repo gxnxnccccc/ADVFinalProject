@@ -1,30 +1,24 @@
 import * as React from "react";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-} from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import FunctionsIcon from "@mui/icons-material/Functions";
 import PersonIcon from "@mui/icons-material/Person";
 import { create } from "zustand";
 
-// Zustand state management
 const useBearStore = create((set) => ({
   appName: "MOVIEPOP",
   setAppName: (name) => set(() => ({ appName: name })),
+  isAdmin: false,
+  setIsAdmin: (isAdmin) => set(() => ({ isAdmin })),
 }));
 
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
   const appName = useBearStore((state) => state.appName);
+  const isAdmin = useBearStore((state) => state.isAdmin);
 
   return (
     <>
-      {/* Use fixed positioning for the AppBar */}
       <AppBar position="fixed" sx={{ backgroundColor: "#000000", width: '100%' }}>
         <Toolbar>
           <Link href={"/"}>
@@ -43,11 +37,11 @@ const NavigationLayout = ({ children }) => {
             {appName}
           </Typography>
 
-          {/* Navigation links */}
           <NavigationLink href="/main" label="MAIN" font='Proelium' />
           <NavigationLink href="/movies" label="MOVIES" font='Proelium' />
           <NavigationLink href="/showtimes" label="SHOWTIMES" font='Proelium' />
-
+          {isAdmin && <NavigationLink href="/dashboard" label="DASHBOARD" font='Proelium' />}
+          
           <Box sx={{ flexGrow: 1 }} />
 
           <Button
@@ -60,13 +54,11 @@ const NavigationLayout = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      {/* Add margin to main content to avoid overlap */}
-      <main style={{ marginTop: '64px' }}>{children}</main> {/* Adjust margin if needed */}
+      <main style={{ marginTop: '64px' }}>{children}</main>
     </>
   );
 };
 
-// Navigation link component
 const NavigationLink = ({ href, label, font }) => {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
