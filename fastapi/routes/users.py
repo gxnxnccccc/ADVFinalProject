@@ -1,12 +1,15 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from database import insert_user  # Make sure the function is imported from database.py
-from database import select_user
+from database import insert_user, select_user, get_user_by_email_password  # Updated to import get_user_by_email_password
 
 router = APIRouter()
 
 class UserCreateRequest(BaseModel):
     username: str
+    email: str
+    password_hash: str
+
+class UserLoginRequest(BaseModel):
     email: str
     password_hash: str
 
@@ -29,3 +32,17 @@ async def fetch_all_users(username: str = None, email: str = None):
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+# New route for login
+@router.post("/user/login")
+async def login_user(user: UserLoginRequest):
+    print("Login attempt for:", user.email)
+    try:
+        user_data = await get_user_by_email_password(user.email, user.password_hash)
+        if user_data:
+            return {"message": "Login successful!", "user": user_data}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except Exception as e:
+        print("Error during login:", e)
+        raise HTTPException(status_code=500, detail="Server error during login")
