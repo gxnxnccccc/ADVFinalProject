@@ -15,7 +15,7 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: finalproject
     ports:

@@ -37,6 +37,7 @@ async def insert_user(username: str, password_hash: str, email: str):
     RETURNING id, username, email
     """
     values = {"username": username, "password": password_hash, "email": email}
+    print(query)
     return await database.fetch_one(query=query, values=values)
 
 async def select_user(username: str = None, email: str = None):
