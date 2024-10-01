@@ -20,12 +20,16 @@ app.include_router(router, prefix="/api")
 # Event handler for application startup
 @app.on_event("startup")
 async def startup():
-    await connect_db()
+    try:
+        # การเชื่อมต่อฐานข้อมูล
+        await connect_db()  # หรือฟังก์ชันที่คุณใช้
+    except Exception as e:
+        print(f"Error during startup: {e}")
 
 # Event handler for application shutdown
-@app.on_event("shutdown")
-async def shutdown():
-    await disconnect_db()
+# @app.on_event("shutdown")
+# async def shutdown():
+#     await disconnect_db()
 
 # Example route to test the application
 @app.get("/")
