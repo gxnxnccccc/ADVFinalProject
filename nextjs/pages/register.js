@@ -30,16 +30,9 @@ const LoginPage = () => {
     setIsSignInActive(false);
   };
 
-  // Handle login form submission with debugging and logging
+  // Handle login form submission
   const handleSignInSubmit = async (e) => {
-    e.preventDefault();  // Prevents the default form submission behavior
-
-    // Debugging: Log the form inputs
-    console.log("Attempting to sign in with:", {
-      username: loginUsername,
-      password_hash: loginPassword,
-      remember_me: rememberMe
-    });
+    e.preventDefault();
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/user/login', {
@@ -48,20 +41,20 @@ const LoginPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: loginUsername,
-          password_hash: loginPassword,
-          remember_me: rememberMe,  // Send remember me state
+          username: loginUsername,  // 'username' should match FastAPI model
+          password_hash: loginPassword,  // 'password_hash' should match FastAPI model
+          remember_me: rememberMe  // 'remember_me' should match FastAPI model
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Login failed:", errorData);  // Log error to console for debugging
+        console.error("Login failed:", errorData);
         throw new Error(errorData.detail || 'Login failed');
       }
 
       const data = await response.json();
-      console.log("Login successful:", data);  // Log successful login response
+      console.log("Login successful:", data);
 
       setNotification(data.message);
 
@@ -73,7 +66,7 @@ const LoginPage = () => {
       }
 
     } catch (error) {
-      console.error("Error during login:", error);  // Log error details
+      console.error("Error during login:", error);
       setNotification(error.message);
     }
   };
