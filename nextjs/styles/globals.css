@@ -1,48 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@200..700&display=swap');
 
+/* Prompt font setup */
 @font-face {
   font-family: 'Prompt';
   src: url('/Prompt/Prompt-Regular.ttf') format('truetype'),
        url('/Prompt/Prompt-Medium.ttf') format('truetype'),
        url('/Prompt/Prompt-Light.ttf') format('truetype'),
-       url('/Prompt/Prompt-Thin.ttf') format('truetype')
-
-       url('/play_chickens/Play Chickens.ttf') format('woff');
-  ;
+       url('/Prompt/Prompt-Thin.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
+/* Play Chickens font setup */
 @font-face {
-  font-family: 'Play Chickens';  /* Name of your font */
-  src: url('/play_chickens/Play Chickens.ttf') format('truetype')
-  ;
-  font-weight: normal;  /* Adjust weight */
-  font-style: normal;   /* Adjust style */
+  font-family: 'Play Chickens';
+  src: url('/play_chickens/Play Chickens.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
+/* Proelium font setup */
 @font-face {
-  font-family: 'Proelium';  /* Name of your font */
-  src: url('/Proelium/Proelium.otf') format('truetype')
-  ;
-  font-weight: normal;  /* Adjust weight */
-  font-style: normal;   /* Adjust style */
+  font-family: 'Proelium';
+  src: url('/Proelium/Proelium.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
+/* SweetAlert2 popup styling */
 .swal2-popup {
   font-size: 1rem !important;
   font-family: 'Prompt';
 }
 
+/* Root font setup */
 :root {
-  --font-family: 'Roboto', sans-serif;
+  --font-family: 'Roboto', sans-serif; /* Default font family */
 }
 
+/* Global styles */
 html, body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-family); /* Apply the font globally */
+  font-family: var(--font-family); /* Apply the default font globally */
   background-color: rgb(255, 255, 255);
 }
-
-

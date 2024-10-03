@@ -7,6 +7,7 @@ const LoginPage = () => {
   // Form states for login
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);  // Remember Me state
 
   // Form states for registration
   const [registerName, setRegisterName] = useState('');
@@ -29,9 +30,17 @@ const LoginPage = () => {
     setIsSignInActive(false);
   };
 
-  // Handle login form submission
+  // Handle login form submission with debugging and logging
   const handleSignInSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevents the default form submission behavior
+
+    // Debugging: Log the form inputs
+    console.log("Attempting to sign in with:", {
+      username: loginUsername,
+      password_hash: loginPassword,
+      remember_me: rememberMe
+    });
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/user/login', {
         method: 'POST',
@@ -41,25 +50,30 @@ const LoginPage = () => {
         body: JSON.stringify({
           username: loginUsername,
           password_hash: loginPassword,
+          remember_me: rememberMe,  // Send remember me state
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Login failed:", errorData);  // Log error to console for debugging
         throw new Error(errorData.detail || 'Login failed');
       }
 
       const data = await response.json();
+      console.log("Login successful:", data);  // Log successful login response
+
       setNotification(data.message);
 
       // Redirect based on role
       if (data.role === 'Admin') {
-        router.push('/dashboard');  // Admin goes to dashboard
+        router.push('/dashboard/dashboard_index');  // Admin goes to dashboard
       } else {
         router.push('/');  // Regular users go to homepage
       }
 
     } catch (error) {
+      console.error("Error during login:", error);  // Log error details
       setNotification(error.message);
     }
   };
@@ -113,7 +127,7 @@ const LoginPage = () => {
             onChange={(e) => setRegisterName(e.target.value)}
             required
             style={{
-              color: '#333',  // Replace this with the exact color code used for other fields
+              color: '#333',
             }}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
@@ -128,7 +142,7 @@ const LoginPage = () => {
                 border: 'none',
                 fontSize: '13px',
                 width: '48%',
-                color: '#333',  // Ensure this color matches the other input fields
+                color: '#333',
               }}
             >
               <option value="">Gender</option>
@@ -146,7 +160,7 @@ const LoginPage = () => {
                 border: 'none',
                 fontSize: '13px',
                 width: '48%',
-                color: '#333',  // Ensure this color matches the other input fields
+                color: '#333',
               }}
             >
               <option value="">Age</option>
@@ -162,7 +176,7 @@ const LoginPage = () => {
             onChange={(e) => setRegisterEmail(e.target.value)}
             required
             style={{
-              color: '#333',  // Use the exact same color code as other input fields
+              color: '#333',
             }}
           />
           <input
@@ -172,7 +186,7 @@ const LoginPage = () => {
             onChange={(e) => setRegisterPassword(e.target.value)}
             required
             style={{
-              color: '#333',  // Use the exact same color code as other input fields
+              color: '#333',
             }}
           />
           <input
@@ -182,7 +196,7 @@ const LoginPage = () => {
             onChange={(e) => setRegisterConfirmPassword(e.target.value)}
             required
             style={{
-              color: '#333',  // Use the exact same color code as other input fields
+              color: '#333',
             }}
           />
           <button type="submit">Sign Up</button>
@@ -201,7 +215,7 @@ const LoginPage = () => {
             onChange={(e) => setLoginUsername(e.target.value)}
             required
             style={{
-              color: '#333',  // Ensure the same color code is applied here
+              color: '#333',
             }}
           />
           <input
@@ -211,9 +225,22 @@ const LoginPage = () => {
             onChange={(e) => setLoginPassword(e.target.value)}
             required
             style={{
-              color: '#333',  // Ensure the same color code is applied here
+              color: '#333',
             }}
           />
+
+          {/* Remember Me Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '10px' }}>
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={() => setRememberMe(!rememberMe)}  // Toggle Remember Me state
+              style={{ marginRight: '5px' }}  // Adjust margin between checkbox and label
+            />
+            <label htmlFor="rememberMe" style={{ color: '#333' }}>Remember Me</label>
+          </div>
+
           <button type="submit">Sign In</button>
           <p>{notification}</p>
         </form>

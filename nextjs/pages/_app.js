@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import "@/styles/style.css";
+
 import React from "react";
 import { useRouter } from "next/router";
 import { AppCacheProvider } from "@mui/material-nextjs/v13-pagesRouter";
@@ -10,12 +11,14 @@ import useBearStore from "@/store/useBearStore";
 import Head from "next/head";
 import { Backdrop, CircularProgress } from "@mui/material";
 
+// Google font import
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
   display: "swap",
 });
 
+// Material-UI theme setup
 const theme = createTheme({
   palette: {},
   typography: {
@@ -30,12 +33,23 @@ export default function App({ Component, pageProps, props }) {
   const pageName = router.pathname;
 
   React.useEffect(() => {
-    console.log("App load", pageName, router.query);
-    setLoading(true);
-    // TODO: This section is used to handle page change.
-    setAppName("Say Hi")
-    setLoading(false);
-  }, [router, pageName]);
+    const handleStart = () => setLoading(true);
+    const handleComplete = () => setLoading(false);
+
+    // Listen to route change events
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
+
+    setAppName("Say Hi");
+
+    // Clean up listeners on unmount
+    return () => {
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
+    };
+  }, [router, pageName, setAppName]);
 
   return (
     <React.Fragment>
@@ -48,7 +62,15 @@ export default function App({ Component, pageProps, props }) {
 
       <AppCacheProvider {...props}>
         <ThemeProvider theme={theme}>
-          {/* Conditionally render NavigationLayout */}
+          {/* Backdrop with CircularProgress for loading spinner */}
+          <Backdrop
+            sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+
+          {/* Conditionally render NavigationLayout based on page */}
           {pageName !== "/register" && pageName !== "/login" ? (
             <NavigationLayout>
               <Component {...pageProps} />

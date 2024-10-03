@@ -1,13 +1,16 @@
 import * as React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box, TextField, InputAdornment, IconButton } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
 import { create } from "zustand";
 
 const useBearStore = create((set) => ({
   appName: "MOVIEPOP",
   setAppName: (name) => set(() => ({ appName: name })),
+  isLoggedIn: false,
+  setIsLoggedIn: (isLoggedIn) => set(() => ({ isLoggedIn })),
   isAdmin: false,
   setIsAdmin: (isAdmin) => set(() => ({ isAdmin })),
 }));
@@ -15,7 +18,28 @@ const useBearStore = create((set) => ({
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
   const appName = useBearStore((state) => state.appName);
+  const isLoggedIn = useBearStore((state) => state.isLoggedIn);
   const isAdmin = useBearStore((state) => state.isAdmin);
+
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      router.push(`/search?query=${searchQuery}`);
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (isLoggedIn) {
+      router.push("/user_profile");  // Go to profile page if logged in
+    } else {
+      router.push("/register");  // Go to register/login page if not logged in
+    }
+  };
+
+  const handleSignInClick = () => {
+    router.push("/register");  // Navigate to register/login page
+  };
 
   return (
     <>
@@ -37,20 +61,54 @@ const NavigationLayout = ({ children }) => {
             {appName}
           </Typography>
 
-          <NavigationLink href="/main" label="MAIN" font='Proelium' />
           <NavigationLink href="/movies" label="MOVIES" font='Proelium' />
-          <NavigationLink href="/showtimes" label="SHOWTIMES" font='Proelium' />
-          {isAdmin && <NavigationLink href="/dashboard" label="DASHBOARD" font='Proelium' />}
-          
+          <NavigationLink href="/favorites" label="FAVORITES" font='Proelium' />
+          <NavigationLink href="/wishlists" label="WISHLISTS" font='Proelium' />
+          {isAdmin && <NavigationLink href="/dashboard/dashboard_index" label="DASHBOARD" font='Proelium' />}
+
           <Box sx={{ flexGrow: 1 }} />
 
-          <Button
-            color="#ffffff"
-            onClick={() => {
-              router.push("/page2");
-            }}>
-            <PersonIcon />
-          </Button>
+          <TextField
+            variant="outlined"
+            placeholder="Search…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearch}
+            size="small"
+            sx={{
+              marginRight: '20px',
+              backgroundColor: '#ffffff',
+              borderRadius: '50px',
+              width: '180px',
+              height: '30px',
+              '& .MuiOutlinedInput-root': {
+                fontFamily: 'Proelium',
+                height: '30px',
+                borderRadius: '50px',
+              },
+              '& input': {
+                textTransform: 'none',
+                fontSize: '12px',
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          {!isLoggedIn ? (
+            <Button color="inherit" onClick={handleSignInClick}>
+              Sign In
+            </Button>
+          ) : (
+            <IconButton color="inherit" onClick={handleProfileClick}>
+              <PersonIcon />
+            </IconButton>
+          )}
         </Toolbar>
       </AppBar>
 
