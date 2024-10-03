@@ -18,6 +18,11 @@ async def insert_user(username: str, password_hash: str, email: str, gender: str
     values = {"username": username, "password": password_hash, "email": email, "gender": gender, "age": age, "phone_number": phone_number}
     return await database.fetch_one(query=query, values=values)
 
+async def get_all_users():
+    query = "SELECT * FROM users"
+    user_data = await database.fetch_one(query=query)
+    return user_data
+
 async def get_user_by_username(username: str):
     query = "SELECT user_id, username, email, password, gender, age, phone_number FROM users WHERE username = :username"
     values = {"username": username}

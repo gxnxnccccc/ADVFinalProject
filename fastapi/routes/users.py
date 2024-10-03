@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from database import insert_user, get_user_by_username, get_admin_by_username_password, delete_user_data
+from database import insert_user, get_user_by_username, get_admin_by_username_password, delete_user_data ,get_all_users
 from fastapi_login import LoginManager
 import bcrypt
 
@@ -43,7 +43,7 @@ async def login_user(user: UserLoginRequest):
         admin_data = await get_admin_by_username_password(user.username, user.password_hash)
         if admin_data:
             access_token = manager.create_access_token(data={"sub": admin_data["username"]})
-            response = JSONResponse({"message": "Login successful as Admin!", "user": admin_data, "role": "Admin"})
+            response = JSONResponse({"message": "Login successful as Admin!", "user": dict(admin_data), "role": "Admin"})
             if user.remember_me:
                 manager.set_cookie(response, access_token)
             return response
@@ -61,7 +61,7 @@ async def login_user(user: UserLoginRequest):
 
             # Create JWT token
             access_token = manager.create_access_token(data={"sub": user_data["username"]})
-            response = JSONResponse({"message": "Login successful!", "user": user_data, "role": "User"})
+            response = JSONResponse({"message": "Login successful!", "user": dict(user_data), "role": "User"}) 
             if user.remember_me:
                 manager.set_cookie(response, access_token)
             return response
@@ -86,3 +86,9 @@ async def logout_user():
     response = JSONResponse({"message": "Logged out successfully"})
     manager.delete_cookie(response)
     return response
+
+# get all users route
+@router.post("/user/all-users")
+async def get_all_user():
+    all_users = await get_all_users()
+    return all_users
