@@ -56,6 +56,9 @@ const LoginPage = () => {
       const data = await response.json();
       console.log("Login successful:", data);
 
+      // Store JWT token in localStorage
+      localStorage.setItem('token', data.access_token);
+
       setNotification(data.message);
 
       // Redirect based on role
@@ -101,10 +104,16 @@ const LoginPage = () => {
 
       const data = await response.json();
       setNotification('Registration successful!');
-      router.push('/login');
+      router.push('/register');  // Redirect to login after registration
     } catch (error) {
       setNotification(error.message);
     }
+  };
+
+  // Handle user logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');  // Remove token from localStorage
+    router.push('/login');  // Redirect to login page
   };
 
   return (
@@ -261,6 +270,9 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Logout Button (for demonstration) */}
+      <button onClick={handleLogout}>Logout</button> {/* Example logout button */}
     </div>
   );
 };

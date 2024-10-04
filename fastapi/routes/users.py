@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from database import insert_user, get_user_by_username, get_admin_by_username_password, delete_user_data ,get_all_users
+from database import insert_user, get_user_by_username, get_admin_by_username_password, delete_user_data, get_all_users
 from fastapi_login import LoginManager
 import bcrypt
 
@@ -23,6 +23,14 @@ class UserLoginRequest(BaseModel):
     password_hash: str
     remember_me: bool = False
 
+# Dependency to get the current logged-in user from the JWT token
+@manager.user_loader
+async def get_user_from_token(username: str):
+    user = await get_user_by_username(username)
+    if user:
+        return user
+    return None
+
 # User registration route
 @router.post("/user/register")
 async def create_user(user: UserCreateRequest):
@@ -42,26 +50,22 @@ async def login_user(user: UserLoginRequest):
         # Admin login
         admin_data = await get_admin_by_username_password(user.username, user.password_hash)
         if admin_data:
-            access_token = manager.create_access_token(data={"sub": admin_data["username"]})
+            access_token = manager.create_access_token(data={"sub": admin_data["username"], "role": "Admin"})
             response = JSONResponse({"message": "Login successful as Admin!", "user": dict(admin_data), "role": "Admin"})
             if user.remember_me:
                 manager.set_cookie(response, access_token)
             return response
 
         # User login (fetch user by username)
-        user_data = await get_user_by_username(user.username)  # Fetch user only by username
+        user_data = await get_user_by_username(user.username)
         if user_data:
-            print(f"User Data Retrieved: {user_data}")
-            print(f"Password Entered: {user.password_hash}")
-            print(f"Stored Hashed Password: {user_data['password']}")
-
-            # Check the password using bcrypt and compare with the stored hash
+            # Verify the password using bcrypt
             if not bcrypt.checkpw(user.password_hash.encode(), user_data["password"].encode()):
                 raise HTTPException(status_code=401, detail="Invalid credentials")
 
             # Create JWT token
-            access_token = manager.create_access_token(data={"sub": user_data["username"]})
-            response = JSONResponse({"message": "Login successful!", "user": dict(user_data), "role": "User"}) 
+            access_token = manager.create_access_token(data={"sub": user_data["username"], "role": "User"})
+            response = JSONResponse({"message": "Login successful!", "user": dict(user_data), "role": "User"})
             if user.remember_me:
                 manager.set_cookie(response, access_token)
             return response
@@ -73,8 +77,10 @@ async def login_user(user: UserLoginRequest):
 
 # Delete user account
 @router.delete("/user/delete")
-async def delete_user(username: str):
+async def delete_user(username: str, current_user: dict = Depends(manager)):
     try:
+        if current_user["username"] != username:
+            raise HTTPException(status_code=403, detail="You are not authorized to delete this account")
         await delete_user_data(username)
         return {"message": "Account deleted successfully"}
     except Exception as e:
@@ -87,8 +93,10 @@ async def logout_user():
     manager.delete_cookie(response)
     return response
 
-# get all users route
-@router.post("/user/all-users")
-async def get_all_user():
+# Get all users route (admin-only access)
+@router.get("/user/all-users")
+async def get_all_user(current_user: dict = Depends(manager)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="You are not authorized to view all users")
     all_users = await get_all_users()
     return all_users
