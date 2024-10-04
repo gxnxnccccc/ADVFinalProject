@@ -8,29 +8,29 @@ import { create } from "zustand";
 
 const useBearStore = create((set) => ({
   // App name state
-  appName: "MOVIEPOP",  // Initialized with a default value
+  appName: "MOVIEPOP",  // Reverted back to MOVIEPOP
   setAppName: (name) => set({ appName: name }),
 
   // Login state
-  isLoggedIn: false,  // Default login state is false
-  setIsLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),  // Function to set login state
+  isLoggedIn: false,  // Initialize login state as false by default
+  setIsLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),  // Function to update login state
 
-  // Admin state (if needed)
-  isAdmin: false,  // Default admin state
-  setIsAdmin: (admin) => set({ isAdmin: admin }),  // Function to set admin state
+  // Admin state
+  isAdmin: false,  
+  setIsAdmin: (admin) => set({ isAdmin }),  
 
   // User details state
-  username: null,  // Store username
-  setUsername: (username) => set({ username }),  // Function to set username
+  username: null,  
+  setUsername: (username) => set({ username }),
 
-  email: null,  // Store email
-  setEmail: (email) => set({ email }),  // Function to set email
+  email: null,  
+  setEmail: (email) => set({ email }),
 
-  gender: null,  // Store gender
-  setGender: (gender) => set({ gender }),  // Function to set gender
+  gender: null,  
+  setGender: (gender) => set({ gender }),
 
-  phoneNumber: null,  // Store phone number
-  setPhoneNumber: (phoneNumber) => set({ phoneNumber }),  // Function to set phone number
+  phoneNumber: null,  
+  setPhoneNumber: (phoneNumber) => set({ phoneNumber }),
 }));
 
 export default useBearStore;

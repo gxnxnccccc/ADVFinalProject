@@ -43,7 +43,7 @@ export default function App({ Component, pageProps, props }) {
     router.events.on("routeChangeComplete", handleComplete);
     router.events.on("routeChangeError", handleComplete);
 
-    setAppName("Say Hi");
+    setAppName("MOVIEPOP");
 
     // Clean up listeners on unmount
     return () => {
