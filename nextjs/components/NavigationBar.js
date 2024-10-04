@@ -1,19 +1,11 @@
+// components/NavigationLayout.js
+
 import * as React from "react";
-import { AppBar, Toolbar, Typography, Button, Box, TextField, InputAdornment, IconButton } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box, TextField, InputAdornment, IconButton, Avatar } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import SearchIcon from "@mui/icons-material/Search";
-import PersonIcon from "@mui/icons-material/Person";
-import { create } from "zustand";
-
-const useBearStore = create((set) => ({
-  appName: "MOVIEPOP",
-  setAppName: (name) => set(() => ({ appName: name })),
-  isLoggedIn: false,
-  setIsLoggedIn: (isLoggedIn) => set(() => ({ isLoggedIn })),
-  isAdmin: false,
-  setIsAdmin: (isAdmin) => set(() => ({ isAdmin })),
-}));
+import useBearStore from "@/store/useBearStore";  // Import Zustand store
 
 const NavigationLayout = ({ children }) => {
   const router = useRouter();
@@ -24,21 +16,17 @@ const NavigationLayout = ({ children }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && searchQuery.trim()) {
       router.push(`/search?query=${searchQuery}`);
     }
   };
 
   const handleProfileClick = () => {
-    if (isLoggedIn) {
-      router.push("/user_profile");  // Go to profile page if logged in
-    } else {
-      router.push("/register");  // Go to register/login page if not logged in
-    }
+    router.push("/user_login");
   };
 
   const handleSignInClick = () => {
-    router.push("/register");  // Navigate to register/login page
+    router.push("/register");
   };
 
   return (
@@ -100,13 +88,15 @@ const NavigationLayout = ({ children }) => {
             }}
           />
 
+          {/* Conditionally render the Profile Icon or Sign In button */}
           {!isLoggedIn ? (
             <Button color="inherit" onClick={handleSignInClick}>
               Sign In
             </Button>
           ) : (
             <IconButton color="inherit" onClick={handleProfileClick}>
-              <PersonIcon />
+              {/* Profile icon will be shown when logged in */}
+              <Avatar src="/default-profile.png" alt="Profile Icon" />
             </IconButton>
           )}
         </Toolbar>

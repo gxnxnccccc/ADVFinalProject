@@ -28,3 +28,4 @@ async def startup():
 async def shutdown():
     # Disconnect from the database
     await disconnect_db()
+

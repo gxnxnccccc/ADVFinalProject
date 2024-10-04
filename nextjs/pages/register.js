@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import useBearStore from "@/store/useBearStore";  // Import Zustand store
 
 const LoginPage = () => {
   const [isSignInActive, setIsSignInActive] = useState(true);
@@ -21,6 +22,9 @@ const LoginPage = () => {
   const [notification, setNotification] = useState('');
 
   const router = useRouter();
+  
+  // Zustand function to update login state
+  const setIsLoggedIn = useBearStore((state) => state.setIsLoggedIn);  // Add this line
 
   const handleSignInClick = () => {
     setIsSignInActive(true);
@@ -60,6 +64,8 @@ const LoginPage = () => {
       localStorage.setItem('token', data.access_token);
 
       setNotification(data.message);
+
+      setIsLoggedIn(true);  // Set login state to true after successful login
 
       // Redirect based on role
       if (data.role === 'Admin') {
@@ -113,6 +119,7 @@ const LoginPage = () => {
   // Handle user logout
   const handleLogout = () => {
     localStorage.removeItem('token');  // Remove token from localStorage
+    setIsLoggedIn(false);  // Set login state to false when logged out
     router.push('/login');  // Redirect to login page
   };
 

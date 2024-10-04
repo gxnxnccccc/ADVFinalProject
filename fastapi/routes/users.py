@@ -1,7 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from database import insert_user, get_user_by_username, get_admin_by_username_password, delete_user_data, get_all_users
+from database import (
+    insert_user, get_user_by_username, get_admin_by_username_password,
+    delete_user_data, get_all_users
+)
 from fastapi_login import LoginManager
 import bcrypt
 
