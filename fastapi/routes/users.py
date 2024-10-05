@@ -25,7 +25,9 @@ class UserLoginRequest(BaseModel):
     username: str
     password_hash: str
     remember_me: bool = False
-
+class LogoutRequest(BaseModel):
+    cookie_name: str
+    
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
 async def get_user_from_token(username: str):
@@ -62,7 +64,7 @@ async def login_user(user: UserLoginRequest):
                 "access_token": access_token  # Include JWT in the response
             })
             cookie_name = f"access_token_{admin_data['username']}"
-            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='None', secure=True)
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='Lax', secure=False,max_age=86400,path="/")
             print("Set-Cookie for Admin:", response.headers.get("set-cookie"))  # Show cookie in console
             return response
 
@@ -83,7 +85,7 @@ async def login_user(user: UserLoginRequest):
             })
 
             cookie_name = f"access_token_{user_data['username']}"
-            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='None', secure=True)
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='Lax', secure=False,max_age=86400,path="/")
             print("Set-Cookie for User:", response.headers.get("set-cookie"))  # Show cookie in console
 
             return response
@@ -107,12 +109,9 @@ async def delete_user(username: str, current_user: dict = Depends(manager)):
 
 # User logout route
 @router.post("/user/logout")
-async def logout_user(cookie_name: str):
+async def logout_user(request: LogoutRequest):
     response = JSONResponse({"message": "Logged out successfully"})
-    
-    # ลบคุกกี้ที่มีชื่อจากคำขอ
-    response.delete_cookie(cookie_name)
-
+    response.delete_cookie(request.cookie_name)  # ใช้ request.cookie_name
     return response
 
 # Get all users route (admin-only access)
@@ -152,3 +151,13 @@ async def logged_in_users(request: Request):
             logged_in_users.append(username)
 
     return {"logged_in_users": logged_in_users}
+
+
+@router.get("/user/{username}")
+async def get_user_details(username: str):
+    user_data = await get_user_by_username(username)
+    return user_data
+
+@router.get("/protected-route")
+async def protected_route(current_user: dict = Depends(manager)):
+    return {"message": "You have access to this route!"}

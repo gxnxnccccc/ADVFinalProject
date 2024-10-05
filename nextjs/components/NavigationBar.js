@@ -14,6 +14,20 @@ const NavigationLayout = ({ children }) => {
   const isAdmin = useBearStore((state) => state.isAdmin);
 
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [username, setUsername] = React.useState(null); // State to hold the username
+
+
+  React.useEffect(() => {
+    // Check localStorage after component mounts
+    try {
+      const storedUsername = localStorage.getItem('username');
+      if (storedUsername) {
+        setUsername(storedUsername);
+      }
+    } catch (error) {
+      console.error("Error accessing localStorage:", error);
+    }
+  }, []);
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -28,6 +42,7 @@ const NavigationLayout = ({ children }) => {
   const handleSignInClick = () => {
     router.push("/register");
   };
+
 
   return (
     <>
@@ -89,7 +104,7 @@ const NavigationLayout = ({ children }) => {
           />
 
           {/* Conditionally render the Profile Icon or Sign In button */}
-          {!isLoggedIn ? (
+          {!username ? (
             <Button color="inherit" onClick={handleSignInClick}>
               Sign In
             </Button>

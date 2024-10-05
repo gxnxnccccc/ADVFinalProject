@@ -20,29 +20,29 @@ const UserProfile = () => {
   // Fetch user data from API on component mount
   useEffect(() => {
     const fetchUserData = async () => {
-        try {
-          const response = await fetch('http://127.0.0.1:8000/api/profile', {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Use the JWT token
-            },
-          });
-      
-          if (response.ok) {
-            const data = await response.json();
-            console.log("User data fetched successfully:", data);
-      
-            // Store user data in Zustand
-            setUsername(data.username);
-            setEmail(data.email);
-            setGender(data.gender);
-            setPhoneNumber(data.phone_number);
-          } else {
-            console.error('Failed to fetch user data');
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Use the JWT token
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("User data fetched successfully:", data);
+
+          // Store user data in Zustand
+          setUsername(data.username);
+          setEmail(data.email);
+          setGender(data.gender);
+          setPhoneNumber(data.phone_number);
+        } else {
+          console.error('Failed to fetch user data');
         }
-      };
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
 
     fetchUserData();
   }, [setUsername, setEmail, setGender, setPhoneNumber]);  // Run only once when the component mounts
@@ -56,33 +56,39 @@ const UserProfile = () => {
   }, [username, email, gender, phoneNumber]);
 
   const handleSignOut = async () => {
-    const cookieName = "access_token"; // ชื่อคุกกี้ที่คุณใช้
-    
-    try {
-        const response = await fetch('http://127.0.0.1:8000/api/user/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ cookie_name: cookieName }),  // ส่งชื่อคุกกี้
-            credentials: 'include',  // ส่งคุกกี้ไปยังเซิร์ฟเวอร์
-        });
+    const cookieName = `access_token_${localStorage.getItem("username")}`;
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data.message);  // แสดงข้อความการล็อกเอาต์
-        } else {
-            const errorData = await response.json();
-            console.error("Failed to logout:", errorData);
-        }
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/user/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cookie_name: cookieName }),  // ส่งชื่อคุกกี้
+        credentials: 'include',  // ส่งคุกกี้ไปยังเซิร์ฟเวอร์
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data.message);  // แสดงข้อความการล็อกเอาต์
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to logout:", errorData);
+      }
     } catch (error) {
-        console.error("Error during logout:", error);
+      console.error("Error during logout:", error);
     }
 
-    localStorage.removeItem('token');  // Remove the JWT token or any session information
-    // Reset Zustand state for user details
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    useBearStore.getState().setIsLoggedIn(false);
+
     router.push("/");  // Redirect to the home page after logging out
-};
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);  // 1000 ms = 1 second
+
+  };
 
 
   const handleDeleteAccount = () => {
