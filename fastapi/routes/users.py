@@ -27,7 +27,7 @@ class UserLoginRequest(BaseModel):
     remember_me: bool = False
 class LogoutRequest(BaseModel):
     cookie_name: str
-    
+
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
 async def get_user_from_token(username: str):
@@ -151,7 +151,6 @@ async def logged_in_users(request: Request):
             logged_in_users.append(username)
 
     return {"logged_in_users": logged_in_users}
-
 
 @router.get("/user/{username}")
 async def get_user_details(username: str):

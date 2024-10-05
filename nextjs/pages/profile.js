@@ -20,24 +20,27 @@ const UserProfile = () => {
   // Fetch user data from API on component mount
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:8000/api/profile', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Use the JWT token
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("User data fetched successfully:", data);
-
-          // Store user data in Zustand
-          setUsername(data.username);
-          setEmail(data.email);
-          setGender(data.gender);
-          setPhoneNumber(data.phone_number);
-        } else {
-          console.error('Failed to fetch user data');
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/api/user/${localStorage.getItem("username")}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Use the JWT token
+            },
+          });
+      
+          if (response.ok) {
+            const data = await response.json();
+            console.log("User data fetched successfully:", data);
+      
+            // Store user data in Zustand
+            setUsername(data.username);
+            setEmail(data.email);
+            setGender(data.gender);
+            setPhoneNumber(data.phone_number);
+          } else {
+            console.error('Failed to fetch user data');
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);

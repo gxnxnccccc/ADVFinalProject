@@ -314,9 +314,6 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Logout Button (for demonstration) */}
-      <button onClick={handleLogout}>Logout</button> {/* Example logout button */}
     </div>
   );
 };
