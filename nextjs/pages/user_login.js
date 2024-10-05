@@ -55,17 +55,35 @@ const UserProfile = () => {
     console.log("Phone number in Zustand:", phoneNumber);
   }, [username, email, gender, phoneNumber]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    const cookieName = "access_token"; // ชื่อคุกกี้ที่คุณใช้
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/user/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cookie_name: cookieName }),  // ส่งชื่อคุกกี้
+            credentials: 'include',  // ส่งคุกกี้ไปยังเซิร์ฟเวอร์
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data.message);  // แสดงข้อความการล็อกเอาต์
+        } else {
+            const errorData = await response.json();
+            console.error("Failed to logout:", errorData);
+        }
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+
     localStorage.removeItem('token');  // Remove the JWT token or any session information
-    useBearStore.setState({
-      isLoggedIn: false,
-      username: null,
-      email: null,
-      gender: null,
-      phoneNumber: null,
-    });  // Reset Zustand state for user details
+    // Reset Zustand state for user details
     router.push("/");  // Redirect to the home page after logging out
-  };
+};
+
 
   const handleDeleteAccount = () => {
     if (confirm("Are you sure you want to delete your account?")) {
