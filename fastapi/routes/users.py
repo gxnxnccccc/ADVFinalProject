@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter,Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from database import (
@@ -50,13 +50,20 @@ async def create_user(user: UserCreateRequest):
 @router.post("/user/login")
 async def login_user(user: UserLoginRequest):
     try:
+        print(user)
         # Admin login
         admin_data = await get_admin_by_username_password(user.username, user.password_hash)
         if admin_data:
             access_token = manager.create_access_token(data={"sub": admin_data["username"], "role": "Admin"})
-            response = JSONResponse({"message": "Login successful as Admin!", "user": dict(admin_data), "role": "Admin"})
-            if user.remember_me:
-                manager.set_cookie(response, access_token)
+            response = JSONResponse({
+                "message": "Login successful as Admin!", 
+                "user": dict(admin_data), 
+                "role": "Admin",
+                "access_token": access_token  # Include JWT in the response
+            })
+            cookie_name = f"access_token_{admin_data['username']}"
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='None', secure=True)
+            print("Set-Cookie for Admin:", response.headers.get("set-cookie"))  # Show cookie in console
             return response
 
         # User login (fetch user by username)
@@ -68,10 +75,19 @@ async def login_user(user: UserLoginRequest):
 
             # Create JWT token
             access_token = manager.create_access_token(data={"sub": user_data["username"], "role": "User"})
-            response = JSONResponse({"message": "Login successful!", "user": dict(user_data), "role": "User"})
-            if user.remember_me:
-                manager.set_cookie(response, access_token)
+            response = JSONResponse({
+                "message": "Login successful!", 
+                "user": dict(user_data), 
+                "role": "User",
+                "access_token": access_token  # Include JWT in the response
+            })
+
+            cookie_name = f"access_token_{user_data['username']}"
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='None', secure=True)
+            print("Set-Cookie for User:", response.headers.get("set-cookie"))  # Show cookie in console
+
             return response
+
         else:
             raise HTTPException(status_code=401, detail="Invalid credentials")
     
@@ -91,9 +107,12 @@ async def delete_user(username: str, current_user: dict = Depends(manager)):
 
 # User logout route
 @router.post("/user/logout")
-async def logout_user():
+async def logout_user(cookie_name: str):
     response = JSONResponse({"message": "Logged out successfully"})
-    manager.delete_cookie(response)
+    
+    # ลบคุกกี้ที่มีชื่อจากคำขอ
+    response.delete_cookie(cookie_name)
+
     return response
 
 # Get all users route (admin-only access)
@@ -103,3 +122,33 @@ async def get_all_user(current_user: dict = Depends(manager)):
         raise HTTPException(status_code=403, detail="You are not authorized to view all users")
     all_users = await get_all_users()
     return all_users
+
+# Get all users route (admin-only access)
+@router.get("/user/all-users-test")
+async def get_all_user():
+    all_users = await get_all_users()
+    return all_users
+
+
+@router.post("/check-cookie")
+async def check_cookie(request: Request):
+    # ตรวจสอบว่ามี cookie ที่ชื่อ "access_token" หรือไม่
+    cookie_value = request.cookies.get("access_token")
+    
+    if cookie_value:
+        return {"message": "Cookie is set", "cookie_value": cookie_value}
+    else:
+        raise HTTPException(status_code=404, detail="Cookie not found")
+
+@router.get("/logged-in-users")
+async def logged_in_users(request: Request):
+    # Get all cookies from the request
+    cookies = request.cookies
+    logged_in_users = []
+
+    for cookie_name in cookies:
+        if cookie_name.startswith("access_token_"):
+            username = cookie_name.split("_", 2)[-1]  # Extract username from cookie name
+            logged_in_users.append(username)
+
+    return {"logged_in_users": logged_in_users}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import useBearStore from "@/store/useBearStore";  // Import Zustand store
 
+
 const LoginPage = () => {
   const [isSignInActive, setIsSignInActive] = useState(true);
 
@@ -9,20 +10,21 @@ const LoginPage = () => {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);  // Remember Me state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states for registration
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
-  const [registerGender, setRegisterGender] = useState('');  
-  const [registerAge, setRegisterAge] = useState('');  
+  const [registerGender, setRegisterGender] = useState('');
+  const [registerAge, setRegisterAge] = useState('');
 
   // Notification state for form feedback
   const [notification, setNotification] = useState('');
 
   const router = useRouter();
-  
+
   // Zustand function to update login state
   const setIsLoggedIn = useBearStore((state) => state.setIsLoggedIn);  // Add this line
 
@@ -37,7 +39,13 @@ const LoginPage = () => {
   // Handle login form submission
   const handleSignInSubmit = async (e) => {
     e.preventDefault();
-
+    if (loginUsername === '' || loginPassword === '') return;
+    console.log({
+      username: loginUsername,
+      password_hash: loginPassword,
+      remember_me: rememberMe,
+  });
+  console.log(1)
     try {
       const response = await fetch('http://127.0.0.1:8000/api/user/login', {
         method: 'POST',
@@ -49,6 +57,7 @@ const LoginPage = () => {
           password_hash: loginPassword,  // 'password_hash' should match FastAPI model
           remember_me: rememberMe  // 'remember_me' should match FastAPI model
         }),
+        credentials: 'include',  // Include credentials (cookies) in the request
       });
 
       if (!response.ok) {
@@ -62,7 +71,8 @@ const LoginPage = () => {
 
       // Store JWT token in localStorage
       localStorage.setItem('token', data.access_token);
-
+      localStorage.setItem('username', loginUsername); 
+      
       setNotification(data.message);
 
       setIsLoggedIn(true);  // Set login state to true after successful login
@@ -76,13 +86,38 @@ const LoginPage = () => {
 
     } catch (error) {
       console.error("Error during login:", error);
+      console.log(error)
       setNotification(error.message);
+    }
+  };
+
+  const checkLoginStatus = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/check-cookie', {
+        method: 'GET',
+        credentials: 'include',  // Include credentials (cookies) in the request
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("User is logged in:", data);
+        // Handle the logged in state here
+      } else {
+        console.log("User is not logged in");
+      }
+
+    } catch (error) {
+      console.error("Error checking login status:", error);
     }
   };
 
   // Handle registration form submission
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true); // Set submitting to true
+
     if (registerPassword !== registerConfirmPassword) {
       setNotification('Passwords do not match');
       return;
@@ -98,8 +133,8 @@ const LoginPage = () => {
           username: registerName,
           email: registerEmail,
           password_hash: registerPassword,
-          gender: registerGender,  
-          age: registerAge,  
+          gender: registerGender,
+          age: registerAge,
         }),
       });
 
@@ -113,6 +148,8 @@ const LoginPage = () => {
       router.push('/register');  // Redirect to login after registration
     } catch (error) {
       setNotification(error.message);
+    } finally {
+      setIsSubmitting(false); // Reset submitting status in finally block
     }
   };
 
