@@ -152,3 +152,9 @@ async def logged_in_users(request: Request):
             logged_in_users.append(username)
 
     return {"logged_in_users": logged_in_users}
+
+@router.get("/user/{username}")
+async def get_user_details(username: str):
+    user_data = await get_user_by_username(username)
+    return user_data
+
