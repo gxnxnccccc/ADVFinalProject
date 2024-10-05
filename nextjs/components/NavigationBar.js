@@ -22,7 +22,7 @@ const NavigationLayout = ({ children }) => {
   };
 
   const handleProfileClick = () => {
-    router.push("/user_login");
+    router.push("/profile");
   };
 
   const handleSignInClick = () => {
