@@ -2,3 +2,5 @@ fastapi[standard]
 uvicorn
 databases[asyncpg]
 pydantic
+fastapi_login
+bcrypt

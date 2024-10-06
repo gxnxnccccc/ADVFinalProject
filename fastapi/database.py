@@ -3,7 +3,7 @@ from databases import Database
 POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "password"
 POSTGRES_DB = "finalproject"
-POSTGRES_HOST = "127.0.0.1"
+POSTGRES_HOST = "db"
 POSTGRES_PORT = "5432"
 
 DATABASE_URL = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
@@ -40,8 +40,35 @@ async def delete_user_data(username: str):
     await database.execute("DELETE FROM favorites WHERE username = :username", {"username": username})
     await database.execute("DELETE FROM users WHERE username = :username", {"username": username})
 
+
+async def get_all_tables():
+    print(1)
+    try:
+        query = """
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        """
+        tables = await database.fetch_all(query=query)
+        return {"tables": [table["table_name"] for table in tables]}
+    except Exception as e:
+        print(f"Error fetching tables: {e}")
+        return {"error": str(e)}
+    
+async def get_current_database():
+    query = "SELECT current_database()"
+    current_db = await database.fetch_one(query=query)
+    return {"current_database": current_db[0]}
+
+
 async def connect_db():
-    await database.connect()
+    while True:
+        try:
+            await database.connect()
+            break
+        except (asyncpg.ConnectionError, ConnectionRefusedError):
+            print("Database is not ready yet. Retrying in 1 second...")
+            await asyncio.sleep(1)
 
 async def disconnect_db():
     await database.disconnect()

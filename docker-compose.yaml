@@ -6,12 +6,12 @@ services:
       - "3000:3000"
     volumes:
       - ./nextjs:/src
-      - /src/node_modules
     working_dir: /src
     command: npm run dev
     environment:
       NEXT_PUBLIC_BACKEND_URL: http://fastapi:8000  # Communicating with FastAPI on port 8000
-
+    depends_on:
+      - fastapi
   db:
     image: postgres
     environment:
@@ -30,7 +30,7 @@ services:
       - "8000:8000"  # Keeping FastAPI on port 8000 internally and externally
     volumes:
       - ./fastapi:/src
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload  # Running FastAPI on port 8000
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  # Running FastAPI on port 8000
     depends_on:
       - db
       

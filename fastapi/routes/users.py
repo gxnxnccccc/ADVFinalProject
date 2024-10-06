@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
-    delete_user_data, get_all_users
+    delete_user_data, get_all_users, get_all_tables, get_current_database
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -160,3 +160,15 @@ async def get_user_details(username: str):
 @router.get("/protected-route")
 async def protected_route(current_user: dict = Depends(manager)):
     return {"message": "You have access to this route!"}
+
+
+
+@router.get("/tables")
+async def read_all_tables():
+    tables = await get_all_tables()
+    return {"tables": tables}
+
+@router.get("current-database")
+async def current_database():
+    tables = await get_current_database()
+    return {"tables": tables}
