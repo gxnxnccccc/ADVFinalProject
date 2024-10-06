@@ -8,7 +8,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000/api/user/logout"],  # Allow all origins (consider specifying your frontend URL in production)
+    allow_origins=["http://127.0.0.1:3000"],  # Allow all origins (consider specifying your frontend URL in production)
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
