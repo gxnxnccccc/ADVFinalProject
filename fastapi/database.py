@@ -6,7 +6,8 @@ POSTGRES_DB = "finalproject"
 POSTGRES_HOST = "db"
 POSTGRES_PORT = "5432"
 
-DATABASE_URL = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+# DATABASE_URL = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+DATABASE_URL = "postgresql://postgres:password@db:5432/finalproject"
 database = Database(DATABASE_URL)
 
 async def insert_user(username: str, password_hash: str, email: str, gender: str, age: int, phone_number: str = None):
@@ -58,6 +59,7 @@ async def get_all_tables():
 async def get_current_database():
     query = "SELECT current_database()"
     current_db = await database.fetch_one(query=query)
+    print(DATABASE_URL)
     return {"current_database": current_db[0]}
 
 
