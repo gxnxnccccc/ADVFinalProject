@@ -107,3 +107,30 @@ async def connect_db():
 
 async def disconnect_db():
     await database.disconnect()
+
+async def get_all_movies():
+    query = """
+    SELECT movie_id, title, description, duration, language, release_date, genre, rating, image
+    FROM movies
+    ORDER BY release_date DESC;
+    """
+    return await database.fetch_all(query=query)
+
+async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: str):
+    query = """
+    INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
+    VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
+    RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
+    """
+    values = {
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "language": language,
+        "release_date": release_date,
+        "genre": genre,
+        "rating": rating,
+        "image": image
+    }
+    return await database.fetch_one(query=query, values=values)
+

@@ -29,3 +29,10 @@
 #     # Disconnect from the database
 #     await disconnect_db()
 
+
+from fastapi import FastAPI
+from routes import users  # Import your router
+
+app = FastAPI()
+
+app.include_router(users.router, prefix="/api")

@@ -1,15 +1,16 @@
-from fastapi import APIRouter,Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
     delete_user_data, get_all_users, get_all_tables, get_current_database,
-    update_user_data
+    update_user_data, insert_movies, get_all_movies
 )
 from fastapi_login import LoginManager
 import bcrypt
 
 from typing import Optional
+from decimal import Decimal
 
 SECRET = "your-secret-key"  # Use a secure key here
 manager = LoginManager(SECRET, token_url='/api/user/login')
@@ -36,6 +37,16 @@ class UserUpdateRequest(BaseModel):
     email: Optional[EmailStr] = None
     gender: Optional[str] = None
     phone_number: Optional[str] = None
+
+class MovieCreateRequest(BaseModel):
+    title: str
+    description: str
+    duration: int
+    language: str
+    release_date: str
+    genre: str
+    rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1)
+    image: str
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
@@ -169,8 +180,6 @@ async def get_user_details(username: str):
 async def protected_route(current_user: dict = Depends(manager)):
     return {"message": "You have access to this route!"}
 
-
-
 @router.get("/tables")
 async def read_all_tables():
     tables = await get_all_tables()
@@ -184,14 +193,15 @@ async def current_database():
 @router.post("/user/update")
 async def update_user(
     update_data: UserUpdateRequest,
-    current_user: dict = Depends(LoginManager.user_loader)
+    current_user: dict = Depends(manager) # This depends on the token validation
 ):
     try:
-        # Fetch the user data using the current username
+        # Fetch the current user's username from the JWT token
         username = current_user.get("username")
         if not username:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
+        # Check if the user exists
         user_data = await get_user_by_username(username)
         if not user_data:
             raise HTTPException(status_code=404, detail="User not found")
@@ -204,7 +214,76 @@ async def update_user(
             phone_number=update_data.phone_number
         )
 
-        return {"message": "User information updated successfully", "user": updated_user}
+        if updated_user:
+            return {"message": "User information updated successfully", "user": updated_user}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+
+# @router.post("/user/update")
+# async def update_user(
+#     update_data: UserUpdateRequest,
+#     current_user: dict = Depends(LoginManager.user_loader)
+# ):
+#     try:
+#         # Fetch the user data using the current username
+#         username = current_user.get("username")
+#         if not username:
+#             raise HTTPException(status_code=401, detail="Unauthorized")
+
+#         user_data = await get_user_by_username(username)
+#         if not user_data:
+#             raise HTTPException(status_code=404, detail="User not found")
+
+#         # Update user information
+#         updated_user = await update_user_data(
+#             username=username,
+#             email=update_data.email,
+#             gender=update_data.gender,
+#             phone_number=update_data.phone_number
+#         )
+
+#         return {"message": "User information updated successfully", "user": updated_user}
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+
+@router.get("/movies")
+async def fetch_movies():
+    try:
+        movies = await get_all_movies()
+        return {"message": "Movies fetched successfully", "movies": movies}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching movies: {str(e)}")
+
+@router.post("/movies/add")
+async def add_movie(movie: MovieCreateRequest):
+    try:
+        # Validate rating value
+        if movie.rating < 0 or movie.rating > 10:
+            raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+        # Validate image URL format
+        if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+            raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
+
+        # Call the insert_movies function to add the movie to the database
+        new_movie = await insert_movies(
+            title=movie.title,
+            description=movie.description,
+            duration=movie.duration,
+            language=movie.language,
+            release_date=movie.release_date,
+            genre=movie.genre,
+            rating=movie.rating,
+            image=movie.image
+        )
+
+        # Return the newly created movie data
+        return {"message": "Movie created successfully", "movie": new_movie}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
