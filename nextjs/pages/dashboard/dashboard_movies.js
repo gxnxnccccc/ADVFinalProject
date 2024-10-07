@@ -1,8 +1,6 @@
-// nextjs/pages/dashboard/dashboard_movies.js
 import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
-
 import Tesseract from 'tesseract.js';
 
 export default function DashboardMovies() {
@@ -18,10 +16,9 @@ export default function DashboardMovies() {
     release_date: '',
     genre: '',
     rating: '',
-    image: ''
+    image: null, // Set initial image to null
   });
 
-  // Fetch movies from the API when the component loads
   useEffect(() => {
     fetchMovies();
   }, []);
@@ -34,11 +31,11 @@ export default function DashboardMovies() {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Error fetching movies");
       }
-  
+
       const data = await response.json();
       setMovies(data.movies);
     } catch (error) {
@@ -49,20 +46,21 @@ export default function DashboardMovies() {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-        setLoading(true);
-        Tesseract.recognize(
-            file,
-            'eng',
-            {
-                logger: (info) => console.log(info) 
-            }
-        ).then(({ data: { text } }) => {
-            setText(text); 
-            setLoading(false);
-        }).catch((error) => {
-            console.error("Error during OCR processing:", error);
-            setLoading(false);
-        });
+      setLoading(true);
+      setNewMovie(prevState => ({ ...prevState, image: file })); // Store the file in state
+      Tesseract.recognize(
+        file,
+        'eng',
+        {
+          logger: (info) => console.log(info)
+        }
+      ).then(({ data: { text } }) => {
+        setText(text);
+        setLoading(false);
+      }).catch((error) => {
+        console.error("Error during OCR processing:", error);
+        setLoading(false);
+      });
     }
   };
 
@@ -88,27 +86,34 @@ export default function DashboardMovies() {
       alert("Rating must be between 0 and 10.");
       return;
     }
-  
-    // Validate the image URL
-    // if (!newMovie.image.match(/\.(jpeg|jpg|gif|png)$/)) {
-    //   alert("Please enter a valid image URL (ending in .jpg, .jpeg, .png, etc.).");
-    //   return;
-    // }
-  
+
+    if (!newMovie.image) {
+      alert("Please upload an image.");
+      return;
+    }
+
+    // Create a FormData object
+    const formData = new FormData();
+    formData.append('title', newMovie.title);
+    formData.append('description', newMovie.description);
+    formData.append('duration', newMovie.duration);
+    formData.append('language', newMovie.language);
+    formData.append('release_date', newMovie.release_date);
+    formData.append('genre', newMovie.genre);
+    formData.append('rating', newMovie.rating);
+    formData.append('image', newMovie.image); // Append the image file
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/movies/add', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newMovie),
+        body: formData, // Send FormData
       });
-  
+
       if (!response.ok) {
         const errorResponse = await response.json();
         throw new Error(errorResponse.detail || "Error adding movie");
       }
-  
+
       await fetchMovies(); // Refresh the movie list
       handleClose(); // Close the dialog
       setNewMovie({
@@ -119,8 +124,9 @@ export default function DashboardMovies() {
         release_date: '',
         genre: '',
         rating: '',
-        image: ''
+        image: null, // Reset image to null
       });
+      setText(''); // Reset extracted text
     } catch (error) {
       console.error("Error adding movie:", error);
     }
@@ -226,7 +232,7 @@ export default function DashboardMovies() {
               inputProps={{ step: "0.1", min: "0", max: "10" }}
             />
             <div>
-            <TextField
+              <TextField
                 margin="dense"
                 label="Image"
                 type="file"
@@ -234,16 +240,16 @@ export default function DashboardMovies() {
                 accept="image/*"
                 onChange={handleFileChange}
                 InputLabelProps={{
-                    shrink: true,
+                  shrink: true,
                 }}
-            />
-            {loading && <p>Processing...</p>}
-            {text && (
+              />
+              {loading && <p>Processing...</p>}
+              {text && (
                 <div>
-                    <h2>Extracted Text:</h2>
-                    <p>{text}</p>
+                  <h2>Extracted Text:</h2>
+                  <p>{text}</p>
                 </div>
-            )}
+              )}
             </div>
           </DialogContent>
           <DialogActions>
