@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends, UploadFile, File
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 from database import (
@@ -11,6 +11,13 @@ import bcrypt
 
 from typing import Optional
 from decimal import Decimal
+
+from PIL import Image
+import pytesseract
+
+import asyncio
+import psycopg2
+import io
 
 SECRET = "your-secret-key"  # Use a secure key here
 manager = LoginManager(SECRET, token_url='/api/user/login')
@@ -46,7 +53,7 @@ class MovieCreateRequest(BaseModel):
     release_date: str
     genre: str
     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1)
-    image: str
+    image: bytes
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
@@ -258,6 +265,16 @@ async def fetch_movies():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching movies: {str(e)}")
 
+async def image_to_text(image_file: UploadFile) -> str:
+    try:
+        image_data = await image_file.read()
+        image = Image.open(io.BytesIO(image_data)) 
+        text = pytesseract.image_to_string(image) 
+        return text
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return ""
+    
 @router.post("/movies/add")
 async def add_movie(movie: MovieCreateRequest):
     try:
@@ -269,6 +286,12 @@ async def add_movie(movie: MovieCreateRequest):
         if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
             raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
 
+        text_image = await image_to_text(movie.image)
+        print(text_image)
+
+        if not text_image:
+            raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
         # Call the insert_movies function to add the movie to the database
         new_movie = await insert_movies(
             title=movie.title,
@@ -278,7 +301,7 @@ async def add_movie(movie: MovieCreateRequest):
             release_date=movie.release_date,
             genre=movie.genre,
             rating=movie.rating,
-            image=movie.image
+            image=psycopg2.binary(movie.image)
         )
 
         # Return the newly created movie data
@@ -287,3 +310,6 @@ async def add_movie(movie: MovieCreateRequest):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
+
+    

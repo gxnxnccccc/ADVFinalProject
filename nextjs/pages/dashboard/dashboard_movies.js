@@ -3,9 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 
+import Tesseract from 'tesseract.js';
+
 export default function DashboardMovies() {
   const [movies, setMovies] = useState([]);
   const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
   const [newMovie, setNewMovie] = useState({
     title: '',
     description: '',
@@ -42,6 +46,26 @@ export default function DashboardMovies() {
     }
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        setLoading(true);
+        Tesseract.recognize(
+            file,
+            'eng',
+            {
+                logger: (info) => console.log(info) 
+            }
+        ).then(({ data: { text } }) => {
+            setText(text); 
+            setLoading(false);
+        }).catch((error) => {
+            console.error("Error during OCR processing:", error);
+            setLoading(false);
+        });
+    }
+  };
+
   const handleOpen = () => {
     setOpen(true);
   };
@@ -66,10 +90,10 @@ export default function DashboardMovies() {
     }
   
     // Validate the image URL
-    if (!newMovie.image.match(/\.(jpeg|jpg|gif|png)$/)) {
-      alert("Please enter a valid image URL (ending in .jpg, .jpeg, .png, etc.).");
-      return;
-    }
+    // if (!newMovie.image.match(/\.(jpeg|jpg|gif|png)$/)) {
+    //   alert("Please enter a valid image URL (ending in .jpg, .jpeg, .png, etc.).");
+    //   return;
+    // }
   
     try {
       const response = await fetch('http://127.0.0.1:8000/api/movies/add', {
@@ -201,15 +225,26 @@ export default function DashboardMovies() {
               onChange={handleChange}
               inputProps={{ step: "0.1", min: "0", max: "10" }}
             />
+            <div>
             <TextField
-              margin="dense"
-              label="Image URL"
-              type="text"
-              fullWidth
-              name="image"
-              value={newMovie.image}
-              onChange={handleChange}
+                margin="dense"
+                label="Image"
+                type="file"
+                fullWidth
+                accept="image/*"
+                onChange={handleFileChange}
+                InputLabelProps={{
+                    shrink: true,
+                }}
             />
+            {loading && <p>Processing...</p>}
+            {text && (
+                <div>
+                    <h2>Extracted Text:</h2>
+                    <p>{text}</p>
+                </div>
+            )}
+            </div>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose} color="secondary">Cancel</Button>

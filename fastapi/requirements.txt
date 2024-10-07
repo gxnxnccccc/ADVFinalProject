@@ -4,3 +4,5 @@ databases[asyncpg]
 pydantic
 fastapi_login
 bcrypt
+Pillow
+pytesseract

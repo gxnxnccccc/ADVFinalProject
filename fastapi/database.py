@@ -116,7 +116,7 @@ async def get_all_movies():
     """
     return await database.fetch_all(query=query)
 
-async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: str):
+async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
     query = """
     INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
     VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
