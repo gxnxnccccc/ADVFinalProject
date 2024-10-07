@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Box, Typography, Button, Avatar } from "@mui/material";
+import { Box, Typography, Button, Avatar, Paper, Divider } from "@mui/material";
 import { useRouter } from "next/router";
 import useBearStore from "@/store/useBearStore";
 
@@ -23,7 +23,7 @@ const UserProfile = () => {
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/user/${localStorage.getItem("username")}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Use the JWT token
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
         });
 
@@ -45,15 +45,7 @@ const UserProfile = () => {
     };
 
     fetchUserData();
-  }, [setUsername, setEmail, setGender, setPhoneNumber]);  // Run only once when the component mounts
-
-  // Logging Zustand values for debugging
-  useEffect(() => {
-    console.log("Username in Zustand:", username);
-    console.log("Email in Zustand:", email);
-    console.log("Gender in Zustand:", gender);
-    console.log("Phone number in Zustand:", phoneNumber);
-  }, [username, email, gender, phoneNumber]);
+  }, [setUsername, setEmail, setGender, setPhoneNumber]);
 
   const handleSignOut = async () => {
     const cookieName = `access_token_${localStorage.getItem("username")}`;
@@ -64,13 +56,13 @@ const UserProfile = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cookie_name: cookieName }),  // ส่งชื่อคุกกี้
-        credentials: 'include',  // ส่งคุกกี้ไปยังเซิร์ฟเวอร์
+        body: JSON.stringify({ cookie_name: cookieName }),
+        credentials: 'include',
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data.message);  // แสดงข้อความการล็อกเอาต์
+        console.log(data.message);
       } else {
         const errorData = await response.json();
         console.error("Failed to logout:", errorData);
@@ -83,13 +75,11 @@ const UserProfile = () => {
     localStorage.removeItem("username");
     useBearStore.getState().setIsLoggedIn(false);
 
-    router.push("/");  // Redirect to the home page after logging out
+    router.push("/");
     setTimeout(() => {
       window.location.reload();
-    }, 500);  // 1000 ms = 1 second
-
+    }, 500);
   };
-
 
   const handleDeleteAccount = () => {
     if (confirm("Are you sure you want to delete your account?")) {
@@ -98,20 +88,93 @@ const UserProfile = () => {
   };
 
   return (
-    <Box sx={{ padding: '20px' }}>
-      <Typography variant="h3" align="center">
-        PROFILE
-      </Typography>
-      <Avatar src="/default-profile.png" alt="Profile Picture" sx={{ width: 100, height: 100, margin: "auto" }} />
-      <Typography variant="h6">Username: {username}</Typography>
-      <Typography>Email: {email}</Typography>
-      <Typography>Gender: {gender}</Typography>
-      <Typography>Phone Number: {phoneNumber}</Typography>
-      <Box sx={{ marginTop: '20px' }}>
-        <Button onClick={() => router.push("/user_profile/edit")}>EDIT PROFILE</Button>
-        <Button onClick={handleDeleteAccount}>DELETE ACCOUNT</Button>
-        <Button onClick={handleSignOut}>SIGN OUT</Button>
-      </Box>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        backgroundImage: 'url(/your-background-image.jpg)', // Optional: Set a custom background image or gradient if needed
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          padding: '30px', 
+          width: '100%', 
+          maxWidth: '600px', 
+          textAlign: 'center', 
+          borderRadius: '12px',
+          fontFamily: 'Proelium, sans-serif',
+          backgroundColor: '#fff',  // Keep the white background for the info box
+        }}
+      >
+        <Avatar
+          src="/default-profile.png"
+          alt="Profile Picture"
+          sx={{
+            width: 150,
+            height: 150,
+            margin: "auto",
+            marginBottom: '20px',
+            boxShadow: 3,
+          }}
+        />
+        <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '10px', color: '#333', fontFamily: 'Proelium, sans-serif' }}>
+          {username}
+        </Typography>
+        <Divider sx={{ margin: '10px 0' }} />
+        <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Email: {email}</Typography>
+        <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Gender: {gender}</Typography>
+        <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Phone Number: {phoneNumber}</Typography>
+        <Divider sx={{ margin: '20px 0' }} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.push("/user_profile/edit")}
+            sx={{ 
+              fontFamily: 'Proelium, sans-serif', 
+              backgroundColor: '#007BFF', 
+              '&:hover': { backgroundColor: '#0056b3' },
+              width: '100%', 
+              maxWidth: '180px',
+            }}
+          >
+            EDIT PROFILE
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDeleteAccount}
+            sx={{ 
+              fontFamily: 'Proelium, sans-serif', 
+              width: '100%', 
+              maxWidth: '180px',
+            }}
+          >
+            DELETE ACCOUNT
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleSignOut}
+            sx={{ 
+              fontFamily: 'Proelium, sans-serif', 
+              backgroundColor: '#DC3545', 
+              '&:hover': { backgroundColor: '#b02a37' },
+              width: '100%', 
+              maxWidth: '180px',
+            }}
+          >
+            SIGN OUT
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 };

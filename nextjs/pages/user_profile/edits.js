@@ -1,108 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import useBearStore from "@/store/useBearStore";  // Zustand store
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button, TextField, Paper, MenuItem } from "@mui/material";
+import { useRouter } from "next/router";
+import useBearStore from "@/store/useBearStore";
 
 const EditProfile = () => {
   const router = useRouter();
 
-  // Fetch the current values from Zustand store
-  const username = useBearStore((state) => state.username);
+  // Zustand store to store and update user details
   const email = useBearStore((state) => state.email);
   const gender = useBearStore((state) => state.gender);
   const phoneNumber = useBearStore((state) => state.phoneNumber);
 
-  // Store the edited values in the local component state
-  const [newUsername, setNewUsername] = useState(username || '');
-  const [newEmail, setNewEmail] = useState(email || '');
-  const [newGender, setNewGender] = useState(gender || '');
-  const [newPhoneNumber, setNewPhoneNumber] = useState(phoneNumber || '');
+  const setEmail = useBearStore((state) => state.setEmail);
+  const setGender = useBearStore((state) => state.setGender);
+  const setPhoneNumber = useBearStore((state) => state.setPhoneNumber);
 
-  // This effect will run once to populate the state with user data from Zustand
+  // Form states
+  const [newEmail, setNewEmail] = useState(email || "");
+  const [newGender, setNewGender] = useState(gender || "");
+  const [newPhoneNumber, setNewPhoneNumber] = useState(phoneNumber || "");
+
   useEffect(() => {
-    setNewUsername(username);
+    // Initialize form values from Zustand state
     setNewEmail(email);
     setNewGender(gender);
     setNewPhoneNumber(phoneNumber);
-  }, [username, email, gender, phoneNumber]);
+  }, [email, gender, phoneNumber]);
 
-  const handleSave = async () => {
+  const handleSaveChanges = async () => {
     try {
-      // Make an API call to save updated profile information
-      const response = await fetch('http://127.0.0.1:8000/api/user/update', {
+      const response = await fetch(`http://127.0.0.1:8000/api/user/update`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          username: newUsername,
           email: newEmail,
           gender: newGender,
           phone_number: newPhoneNumber,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
+      if (response.ok) {
+        const updatedData = await response.json();
+        console.log("User data updated successfully:", updatedData);
+
+        // Update Zustand store with new data
+        setEmail(newEmail);
+        setGender(newGender);
+        setPhoneNumber(newPhoneNumber);
+
+        // Redirect back to the profile page
+        router.push("/user_profile");
+      } else {
+        console.error('Failed to update user data');
       }
-
-      // Update Zustand store with new user information
-      useBearStore.setState({
-        username: newUsername,
-        email: newEmail,
-        gender: newGender,
-        phoneNumber: newPhoneNumber,
-      });
-
-      // Redirect back to the profile page
-      router.push('/user_login');
-
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error updating user data:', error);
     }
   };
 
   return (
-    <div>
-      <h1>Edit Profile</h1>
-      <div>
-        <label>Username</label>
-        <input
-          type="text"
-          placeholder="Username"
-          value={newUsername}
-          onChange={(e) => setNewUsername(e.target.value)}
-        />
-      </div>
-      <div>
-        <label>Email</label>
-        <input
-          type="email"
-          placeholder="Email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-        />
-      </div>
-      <div>
-        <label>Gender</label>
-        <input
-          type="text"
-          placeholder="Gender"
-          value={newGender}
-          onChange={(e) => setNewGender(e.target.value)}
-        />
-      </div>
-      <div>
-        <label>Phone Number</label>
-        <input
-          type="text"
-          placeholder="Phone Number"
-          value={newPhoneNumber}
-          onChange={(e) => setNewPhoneNumber(e.target.value)}
-        />
-      </div>
-      <button onClick={handleSave}>Save</button>
-    </div>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden',
+        backgroundImage: 'url(/your-background-image.jpg)', // Optional: Set a custom background image or gradient if needed
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          padding: '30px', 
+          width: '100%', 
+          maxWidth: '500px', 
+          textAlign: 'center', 
+          borderRadius: '12px',
+          fontFamily: 'Proelium, sans-serif',
+          backgroundColor: '#fff',
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 'bold', marginBottom: '20px', fontFamily: 'Proelium, sans-serif' }}>
+          Edit Profile
+        </Typography>
+        <Box component="form" noValidate autoComplete="off">
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            margin="normal"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            sx={{ fontFamily: 'Proelium, sans-serif' }}
+          />
+          <TextField
+            fullWidth
+            select
+            label="Gender"
+            variant="outlined"
+            margin="normal"
+            value={newGender}
+            onChange={(e) => setNewGender(e.target.value)}
+            sx={{ fontFamily: 'Proelium, sans-serif' }}
+          >
+            <MenuItem value="Male">Male</MenuItem>
+            <MenuItem value="Female">Female</MenuItem>
+            <MenuItem value="Other">Other</MenuItem>
+          </TextField>
+          <TextField
+            fullWidth
+            label="Phone Number"
+            variant="outlined"
+            margin="normal"
+            value={newPhoneNumber}
+            onChange={(e) => setNewPhoneNumber(e.target.value)}
+            sx={{ fontFamily: 'Proelium, sans-serif' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSaveChanges}
+            sx={{ 
+              marginTop: '20px', 
+              width: '100%', 
+              fontFamily: 'Proelium, sans-serif', 
+              backgroundColor: '#007BFF', 
+              '&:hover': { backgroundColor: '#0056b3' },
+            }}
+          >
+            Save Changes
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => router.push("/user_profile")}
+            sx={{ 
+              marginTop: '10px', 
+              width: '100%', 
+              fontFamily: 'Proelium, sans-serif', 
+            }}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

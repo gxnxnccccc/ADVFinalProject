@@ -53,7 +53,7 @@ const IndexPage = () => {
       {/* Hero Section */}
       <Box
         sx={{
-          backgroundImage: `url('/images/hero.jpg')`,
+          // backgroundImage: `url('/images/hero.jpg')`,
           backgroundSize: 'cover',
           height: '400px',
           color: '#fff',

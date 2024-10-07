@@ -1,12 +1,15 @@
 from fastapi import APIRouter,Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
-    delete_user_data, get_all_users, get_all_tables, get_current_database
+    delete_user_data, get_all_users, get_all_tables, get_current_database,
+    update_user_data
 )
 from fastapi_login import LoginManager
 import bcrypt
+
+from typing import Optional
 
 SECRET = "your-secret-key"  # Use a secure key here
 manager = LoginManager(SECRET, token_url='/api/user/login')
@@ -25,17 +28,22 @@ class UserLoginRequest(BaseModel):
     username: str
     password_hash: str
     remember_me: bool = False
+
 class LogoutRequest(BaseModel):
     cookie_name: str
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    gender: Optional[str] = None
+    phone_number: Optional[str] = None
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
 async def get_user_from_token(username: str):
     user = await get_user_by_username(username)
-    if user:
-        return user
-    return None
-
+    # if user:
+    #     return user
+    return user if user else None
 # User registration route
 @router.post("/user/register")
 async def create_user(user: UserCreateRequest):
@@ -172,3 +180,31 @@ async def read_all_tables():
 async def current_database():
     tables = await get_current_database()
     return {"tables": tables}
+
+@router.post("/user/update")
+async def update_user(
+    update_data: UserUpdateRequest,
+    current_user: dict = Depends(LoginManager.user_loader)
+):
+    try:
+        # Fetch the user data using the current username
+        username = current_user.get("username")
+        if not username:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
+        user_data = await get_user_by_username(username)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Update user information
+        updated_user = await update_user_data(
+            username=username,
+            email=update_data.email,
+            gender=update_data.gender,
+            phone_number=update_data.phone_number
+        )
+
+        return {"message": "User information updated successfully", "user": updated_user}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")

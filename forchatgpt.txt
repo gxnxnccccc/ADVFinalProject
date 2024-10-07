@@ -1,0 +1,968 @@
+hi chat, these are my code for making movie ticket booking system website,
+
+1) FastAPI codes
+
+# fastapi/models/user.py
+
+# models/user.py
+
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
+# Pydantic models
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str  # or password_hash if you're hashing the password before saving
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class User(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+
+    class Config:
+        orm_mode = True  # This allows the Pydantic model to work with SQLAlchemy models
+
+# SQLAlchemy model
+Base = declarative_base()
+
+class UserDB(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password_hash = Column(String)  # Store the hashed password here
+
+
+# fastapi/routes/users.py
+
+from fastapi import APIRouter,Request, HTTPException, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from database import (
+    insert_user, get_user_by_username, get_admin_by_username_password,
+    delete_user_data, get_all_users, get_all_tables, get_current_database
+)
+from fastapi_login import LoginManager
+import bcrypt
+
+SECRET = "your-secret-key"  # Use a secure key here
+manager = LoginManager(SECRET, token_url='/api/user/login')
+
+router = APIRouter()
+
+class UserCreateRequest(BaseModel):
+    username: str
+    email: str
+    password_hash: str
+    gender: str
+    age: int
+    phone_number: str = None
+
+class UserLoginRequest(BaseModel):
+    username: str
+    password_hash: str
+    remember_me: bool = False
+class LogoutRequest(BaseModel):
+    cookie_name: str
+
+# Dependency to get the current logged-in user from the JWT token
+@manager.user_loader
+async def get_user_from_token(username: str):
+    user = await get_user_by_username(username)
+    if user:
+        return user
+    return None
+
+# User registration route
+@router.post("/user/register")
+async def create_user(user: UserCreateRequest):
+    try:
+        # Hash the password before storing it
+        hashed_password = bcrypt.hashpw(user.password_hash.encode(), bcrypt.gensalt()).decode()
+
+        new_user = await insert_user(user.username, hashed_password, user.email, user.gender, user.age, user.phone_number)
+        return new_user
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+
+# User login route
+@router.post("/user/login")
+async def login_user(user: UserLoginRequest):
+    try:
+        print(user)
+        # Admin login
+        admin_data = await get_admin_by_username_password(user.username, user.password_hash)
+        if admin_data:
+            access_token = manager.create_access_token(data={"sub": admin_data["username"], "role": "Admin"})
+            response = JSONResponse({
+                "message": "Login successful as Admin!", 
+                "user": dict(admin_data), 
+                "role": "Admin",
+                "access_token": access_token  # Include JWT in the response
+            })
+            cookie_name = f"access_token_{admin_data['username']}"
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='Lax', secure=False,max_age=86400,path="/")
+            print("Set-Cookie for Admin:", response.headers.get("set-cookie"))  # Show cookie in console
+            return response
+
+        # User login (fetch user by username)
+        user_data = await get_user_by_username(user.username)
+        if user_data:
+            # Verify the password using bcrypt
+            if not bcrypt.checkpw(user.password_hash.encode(), user_data["password"].encode()):
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+
+            # Create JWT token
+            access_token = manager.create_access_token(data={"sub": user_data["username"], "role": "User"})
+            response = JSONResponse({
+                "message": "Login successful!", 
+                "user": dict(user_data), 
+                "role": "User",
+                "access_token": access_token  # Include JWT in the response
+            })
+
+            cookie_name = f"access_token_{user_data['username']}"
+            response.set_cookie(key=cookie_name, value=access_token, httponly=True, samesite='Lax', secure=False,max_age=86400,path="/")
+            print("Set-Cookie for User:", response.headers.get("set-cookie"))  # Show cookie in console
+
+            return response
+
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error during login: {str(e)}")
+
+# Delete user account
+@router.delete("/user/delete")
+async def delete_user(username: str, current_user: dict = Depends(manager)):
+    try:
+        if current_user["username"] != username:
+            raise HTTPException(status_code=403, detail="You are not authorized to delete this account")
+        await delete_user_data(username)
+        return {"message": "Account deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting account: {str(e)}")
+
+# User logout route
+@router.post("/user/logout")
+async def logout_user(request: LogoutRequest):
+    response = JSONResponse({"message": "Logged out successfully"})
+    response.delete_cookie(request.cookie_name)  # ใช้ request.cookie_name
+    return response
+
+# Get all users route (admin-only access)
+@router.get("/user/all-users")
+async def get_all_user(current_user: dict = Depends(manager)):
+    if current_user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="You are not authorized to view all users")
+    all_users = await get_all_users()
+    return all_users
+
+# Get all users route (admin-only access)
+@router.get("/user/all-users-test")
+async def get_all_user():
+    all_users = await get_all_users()
+    return all_users
+
+
+@router.post("/check-cookie")
+async def check_cookie(request: Request):
+    # ตรวจสอบว่ามี cookie ที่ชื่อ "access_token" หรือไม่
+    cookie_value = request.cookies.get("access_token")
+    
+    if cookie_value:
+        return {"message": "Cookie is set", "cookie_value": cookie_value}
+    else:
+        raise HTTPException(status_code=404, detail="Cookie not found")
+
+@router.get("/logged-in-users")
+async def logged_in_users(request: Request):
+    # Get all cookies from the request
+    cookies = request.cookies
+    logged_in_users = []
+
+    for cookie_name in cookies:
+        if cookie_name.startswith("access_token_"):
+            username = cookie_name.split("_", 2)[-1]  # Extract username from cookie name
+            logged_in_users.append(username)
+
+    return {"logged_in_users": logged_in_users}
+
+@router.get("/user/{username}")
+async def get_user_details(username: str):
+    user_data = await get_user_by_username(username)
+    return user_data
+
+@router.get("/protected-route")
+async def protected_route(current_user: dict = Depends(manager)):
+    return {"message": "You have access to this route!"}
+
+
+
+@router.get("/tables")
+async def read_all_tables():
+    tables = await get_all_tables()
+    return {"tables": tables}
+
+@router.get("current-database")
+async def current_database():
+    tables = await get_current_database()
+    return {"tables": tables}
+
+
+# fastapi/database.py
+
+from databases import Database
+import asyncpg
+import asyncio
+
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "password"
+POSTGRES_DB = "finalproject"
+POSTGRES_HOST = "db"
+POSTGRES_PORT = "5432"
+
+# DATABASE_URL = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+DATABASE_URL = "postgresql://postgres:password@db:5432/finalproject"
+database = Database(DATABASE_URL)
+
+async def insert_user(username: str, password_hash: str, email: str, gender: str, age: int, phone_number: str = None):
+    query = """
+    INSERT INTO users (username, password, email, gender, age, phone_number)
+    VALUES (:username, :password, :email, :gender, :age, :phone_number)
+    RETURNING user_id, username, email, gender, age, phone_number
+    """
+    values = {"username": username, "password": password_hash, "email": email, "gender": gender, "age": age, "phone_number": phone_number}
+    return await database.fetch_one(query=query, values=values)
+
+async def get_all_users():
+    query = "SELECT * FROM users"
+    user_data = await database.fetch_one(query=query)
+    return user_data
+
+async def get_user_by_username(username: str):
+    query = "SELECT user_id, username, email, password, gender, age, phone_number FROM users WHERE username = :username"
+    values = {"username": username}
+    return await database.fetch_one(query=query, values=values)
+
+async def get_admin_by_username_password(username: str, password_hash: str):
+    query = """
+    SELECT admin_id, username, email FROM "Admin"
+    WHERE username = :username AND password = :password
+    """
+    values = {"username": username, "password": password_hash}
+    return await database.fetch_one(query=query, values=values)
+
+async def delete_user_data(username: str):
+    await database.execute("DELETE FROM favorites WHERE username = :username", {"username": username})
+    await database.execute("DELETE FROM users WHERE username = :username", {"username": username})
+
+
+async def get_all_tables():
+    print(1)
+    try:
+        query = """
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        """
+        tables = await database.fetch_all(query=query)
+        return {"tables": [table["table_name"] for table in tables]}
+    except Exception as e:
+        print(f"Error fetching tables: {e}")
+        return {"error": str(e)}
+    
+async def get_current_database():
+    query = "SELECT current_database()"
+    current_db = await database.fetch_one(query=query)
+    print(DATABASE_URL)
+    return {"current_database": current_db[0]}
+
+
+async def connect_db():
+    while True:
+        try:
+            await database.connect()
+            break
+        except (asyncpg.exceptions.PostgresConnectionError, ConnectionRefusedError):
+            print("Database is not ready yet. Retrying in 1 second...")
+            await asyncio.sleep(1)
+
+async def disconnect_db():
+    await database.disconnect()
+
+
+# fastapi/main.py
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routes.users import router
+from database import connect_db, disconnect_db, database
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(router, prefix="/api")
+
+@app.on_event("startup")
+async def startup():
+    try:
+        await connect_db()
+        await check_table_exists("Admin")
+
+    except Exception as e:
+        print(f"Error during startup: {e}")
+
+@app.on_event("shutdown")
+async def shutdown():
+    await disconnect_db()
+
+
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the FastAPI application!"}
+
+
+async def check_table_exists(table_name: str):
+    query = f"SELECT to_regclass('{table_name}');"
+    result = await database.fetch_one(query)
+    if result[0] is None:
+        raise HTTPException(status_code=500, detail=f"Table '{table_name}' does not exist")
+    print(f"Table '{table_name}' exists in the database.")
+
+
+2) Next.js codes
+
+# nextjs/pages/_app.js
+
+import "@/styles/globals.css";
+import "@/styles/style.css";
+
+import React from "react";
+import { useRouter } from "next/router";
+import { AppCacheProvider } from "@mui/material-nextjs/v13-pagesRouter";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { Roboto } from "next/font/google";
+import NavigationLayout from "@/components/NavigationBar"; // Ensure this path is correct
+import useBearStore from "@/store/useBearStore";
+import Head from "next/head";
+import { Backdrop, CircularProgress } from "@mui/material";
+
+// import { SessionProvider } from "next-auth/react"
+
+// Google font import
+const roboto = Roboto({
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Material-UI theme setup
+const theme = createTheme({
+  palette: {},
+  typography: {
+    fontFamily: roboto.style.fontFamily,
+  },
+});
+
+export default function App({ Component, pageProps, props }) {
+  const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
+  const setAppName = useBearStore((state) => state.setAppName);
+  const pageName = router.pathname;
+
+  React.useEffect(() => {
+    const handleStart = () => setLoading(true);
+    const handleComplete = () => setLoading(false);
+
+    // Listen to route change events
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
+
+    setAppName("MOVIEPOP");
+
+    // Clean up listeners on unmount
+    return () => {
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
+    };
+  }, [router, pageName, setAppName]);
+
+  return (
+    <React.Fragment>
+      <Head>
+        <title>{`Application`}</title>
+        <meta name="description" content="Generated by create next app" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <AppCacheProvider {...props}>
+        <ThemeProvider theme={theme}>
+          {/* Backdrop with CircularProgress for loading spinner */}
+          <Backdrop
+            sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+
+          {/* Conditionally render NavigationLayout based on page */}
+          {pageName !== "/register" && pageName !== "/login" ? (
+            <NavigationLayout>
+              <Component {...pageProps} />
+            </NavigationLayout>
+          ) : (
+            <Component {...pageProps} />
+          )}
+        </ThemeProvider>
+      </AppCacheProvider>
+    </React.Fragment>
+  );
+}
+
+# nextjs/pages/_document.js
+
+
+import { Html, Head, Main, NextScript } from "next/document";
+import {
+  DocumentHeadTags,
+  documentGetInitialProps,
+} from "@mui/material-nextjs/v13-pagesRouter";
+
+export default function Document(props) {
+  return (
+    <Html lang="en">
+      <Head>
+        <DocumentHeadTags {...props} />
+        {/* Adding Google Fonts */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@200..700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
+
+Document.getInitialProps = async (ctx) => {
+  const finalProps = await documentGetInitialProps(ctx);
+  return finalProps;
+};
+
+
+
+# nextjs/pages/register.js
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import useBearStore from "@/store/useBearStore";  // Import Zustand store
+
+
+const LoginPage = () => {
+  const [isSignInActive, setIsSignInActive] = useState(true);
+
+  // Form states for login
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);  // Remember Me state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form states for registration
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [registerGender, setRegisterGender] = useState('');
+  const [registerAge, setRegisterAge] = useState('');
+
+  // Notification state for form feedback
+  const [notification, setNotification] = useState('');
+
+  const router = useRouter();
+
+  // Zustand function to update login state
+  const setIsLoggedIn = useBearStore((state) => state.setIsLoggedIn);  // Add this line
+
+  const handleSignInClick = () => {
+    setIsSignInActive(true);
+  };
+
+  const handleSignUpClick = () => {
+    setIsSignInActive(false);
+  };
+
+  // Handle login form submission
+  const handleSignInSubmit = async (e) => {
+    e.preventDefault();
+    if (loginUsername === '' || loginPassword === '') return;
+    console.log({
+      username: loginUsername,
+      password_hash: loginPassword,
+      remember_me: rememberMe,
+  });
+  console.log(1)
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginUsername,  // 'username' should match FastAPI model
+          password_hash: loginPassword,  // 'password_hash' should match FastAPI model
+          remember_me: rememberMe  // 'remember_me' should match FastAPI model
+        }),
+        credentials: 'include',  // Include credentials (cookies) in the request
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Login failed:", errorData);
+        throw new Error(errorData.detail || 'Login failed');
+      }
+
+      const data = await response.json();
+      console.log("Login successful:", data);
+
+      // Store JWT token in localStorage
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('username', loginUsername); 
+      
+      setNotification(data.message);
+
+      setIsLoggedIn(true);  // Set login state to true after successful login
+
+      // Redirect based on role
+      if (data.role === 'Admin') {
+        router.push('/dashboard/dashboard_index');  // Admin goes to dashboard
+      } else {
+        router.push('/');  // Regular users go to homepage
+      }
+
+    } catch (error) {
+      console.error("Error during login:", error);
+      console.log(error)
+      setNotification(error.message);
+    }
+  };
+
+  const checkLoginStatus = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/check-cookie', {
+        method: 'GET',
+        credentials: 'include',  // Include credentials (cookies) in the request
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("User is logged in:", data);
+        // Handle the logged in state here
+      } else {
+        console.log("User is not logged in");
+      }
+
+    } catch (error) {
+      console.error("Error checking login status:", error);
+    }
+  };
+
+  // Handle registration form submission
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true); // Set submitting to true
+
+    if (registerPassword !== registerConfirmPassword) {
+      setNotification('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/user/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: registerName,
+          email: registerEmail,
+          password_hash: registerPassword,
+          gender: registerGender,
+          age: registerAge,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Registration failed');
+      }
+
+      const data = await response.json();
+      setNotification('Registration successful!');
+      router.push('/register');  // Redirect to login after registration
+    } catch (error) {
+      setNotification(error.message);
+    } finally {
+      setIsSubmitting(false); // Reset submitting status in finally block
+    }
+  };
+
+  // Handle user logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');  // Remove token from localStorage
+    setIsLoggedIn(false);  // Set login state to false when logged out
+    router.push('/login');  // Redirect to login page
+  };
+
+  return (
+    <div className={`container ${isSignInActive ? '' : 'active'}`} id="container">
+      {/* Sign Up Form */}
+      <div className="form-container sign-up">
+        <form onSubmit={handleSignUpSubmit}>
+          <h1>Create Account</h1>
+          <input
+            type="text"
+            placeholder="Name"
+            value={registerName}
+            onChange={(e) => setRegisterName(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <select
+              value={registerGender}
+              onChange={(e) => setRegisterGender(e.target.value)}
+              required
+              style={{
+                backgroundColor: '#eee',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '13px',
+                width: '48%',
+                color: '#333',
+              }}
+            >
+              <option value="">Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+            <select
+              value={registerAge}
+              onChange={(e) => setRegisterAge(e.target.value)}
+              required
+              style={{
+                backgroundColor: '#eee',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '13px',
+                width: '48%',
+                color: '#333',
+              }}
+            >
+              <option value="">Age</option>
+              {[...Array(51).keys()].slice(10).map((age) => (
+                <option key={age} value={age}>{age}</option>
+              ))}
+            </select>
+          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={registerEmail}
+            onChange={(e) => setRegisterEmail(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={registerPassword}
+            onChange={(e) => setRegisterPassword(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Confirmed Password"
+            value={registerConfirmPassword}
+            onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+          <button type="submit">Sign Up</button>
+          <p>{notification}</p>
+        </form>
+      </div>
+
+      {/* Sign In Form */}
+      <div className="form-container sign-in">
+        <form onSubmit={handleSignInSubmit}>
+          <h1>Sign In</h1>
+          <input
+            type="text"
+            placeholder="Username"
+            value={loginUsername}
+            onChange={(e) => setLoginUsername(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            required
+            style={{
+              color: '#333',
+            }}
+          />
+
+          {/* Remember Me Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '10px' }}>
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={() => setRememberMe(!rememberMe)}  // Toggle Remember Me state
+              style={{ marginRight: '5px' }}  // Adjust margin between checkbox and label
+            />
+            <label htmlFor="rememberMe" style={{ color: '#333' }}>Remember Me</label>
+          </div>
+
+          <button type="submit">Sign In</button>
+          <p>{notification}</p>
+        </form>
+      </div>
+
+      {/* Toggle between forms */}
+      <div className="toggle-container">
+        <div className="toggle">
+          {/* Left Panel for Sign In */}
+          <div className="toggle-panel toggle-left">
+            <h1>Welcome Back!</h1>
+            <p>Enter your personal details to use all of the site's features</p>
+            <button className="hidden" onClick={handleSignInClick} id="login">
+              Sign In
+            </button>
+          </div>
+
+          {/* Right Panel for Sign Up */}
+          <div className="toggle-panel toggle-right">
+            <h1>Hello, Friend!</h1>
+            <p>Register with your personal details to use all of the site's features</p>
+            <button className="hidden" onClick={handleSignUpClick} id="register">
+              Sign Up
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
+
+
+
+# nextjs/store/useBearStore.js
+
+// store/useBearStore.js
+import { create } from "zustand";
+
+/* 
+  https://github.com/pmndrs/zustand
+  Global state-management
+*/
+
+const useBearStore = create((set) => ({
+  // App name state
+  appName: "MOVIEPOP",  // Reverted back to MOVIEPOP
+  setAppName: (name) => set({ appName: name }),
+
+  // Login state
+  isLoggedIn: false,  // Initialize login state as false by default
+  setIsLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),  // Function to update login state
+
+  // Admin state
+  isAdmin: false,  
+  setIsAdmin: (admin) => set({ isAdmin }),  
+
+  // User details state
+  username: null,  
+  setUsername: (username) => set({ username }),
+
+  email: null,  
+  setEmail: (email) => set({ email }),
+
+  gender: null,  
+  setGender: (gender) => set({ gender }),
+
+  phoneNumber: null,  
+  setPhoneNumber: (phoneNumber) => set({ phoneNumber }),
+}));
+
+export default useBearStore;
+
+
+3) docker file and codes
+
+# docker-compose.yaml
+
+services:
+  nextjs:
+    build:
+      context: ./nextjs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nextjs:/src
+    working_dir: /src
+    command: npm run dev
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://fastapi:8000  # Communicating with FastAPI on port 8000
+    depends_on:
+      - fastapi
+  db:
+    image: postgres
+    network_mode: host
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finalproject
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  fastapi:
+    build:
+      context: ./fastapi
+    ports:
+      - "8000:8000"  # Keeping FastAPI on port 8000 internally and externally
+    volumes:
+      - ./fastapi:/src
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  # Running FastAPI on port 8000
+    depends_on:
+      - db
+      
+volumes:
+  postgres_data:
+
+
+# fastapi/Dockerfile
+
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /src
+
+# Copy the requirements file into the container
+COPY requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code into the container
+COPY . .
+
+# Expose the port FastAPI will run on
+EXPOSE 8000
+
+# Command to run the FastAPI application with Uvicorn
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+
+# fastapi/requirements.txt
+
+fastapi[standard]
+uvicorn
+databases[asyncpg]
+pydantic
+fastapi_login
+bcrypt
+
+# code for making database table using PostgreSQL, DBeaver
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "Admin" (
+    admin_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    gender VARCHAR(10),
+    phone_number VARCHAR(15),
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+INSERT INTO "Admin" (username, password, gender, phone_number, email)
+VALUES 
+('gamemu', 'secure1234', 'Female', '123-456-7890', 'adminuser@gmail.com');
+
+ALTER TABLE users
+ADD COLUMN gender VARCHAR(10),
+ADD COLUMN age INT;
+
+ALTER TABLE users
+ADD CONSTRAINT unique_username UNIQUE (username);
+
+CREATE TABLE IF NOT EXISTS favorites (
+    favorite_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) REFERENCES users(username),
+    movie_title VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+SELECT * FROM users WHERE username = 'oiu';
+
+
+
+but the thing is, when i test the website, at the registration part in register page, 
+it shows "Error creating user: DatabaseBackend is not running". Also, for the sign in part in the same page, 
+which is still in register page, it shows "fail to fetch", "Server error during login: DatabaseBackend is not running"
+
+i don't know what's going on with all my code or the library installation, can i find the error and tell me how to fix?
+

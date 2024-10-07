@@ -1,3 +1,5 @@
+version: '3.8'  # Adjust version based on your Docker version if needed
+
 services:
   nextjs:
     build:
@@ -9,30 +11,41 @@ services:
     working_dir: /src
     command: npm run dev
     environment:
-      NEXT_PUBLIC_BACKEND_URL: http://fastapi:8000  # Communicating with FastAPI on port 8000
+      NEXT_PUBLIC_BACKEND_URL: http://127.0.0.1:8000  # FastAPI service name and port
     depends_on:
       - fastapi
-  db:
-    image: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: finalproject
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_network
 
   fastapi:
     build:
       context: ./fastapi
     ports:
-      - "8000:8000"  # Keeping FastAPI on port 8000 internally and externally
+      - "8000:8000"  # Keep FastAPI exposed on port 8000
     volumes:
       - ./fastapi:/src
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  # Running FastAPI on port 8000
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - db
-      
+    networks:
+      - backend_network
+
+  db:
+    image: postgres:latest  # Using the latest version of PostgreSQL
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finalproject
+    ports:
+      - "5432:5432"  # Expose PostgreSQL on port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_network
+
+networks:
+  backend_network:
+    driver: bridge
+
 volumes:
   postgres_data:
