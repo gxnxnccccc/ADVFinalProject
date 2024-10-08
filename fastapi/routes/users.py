@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Depends, UploadFile, File
+from fastapi import FastAPI, APIRouter, Request, HTTPException, Depends, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 from database import (
@@ -275,18 +275,162 @@ async def image_to_text(image_file: UploadFile) -> str:
         print(f"An error occurred: {e}")
         return ""
     
+# @router.post("/movies/add")
+# async def add_movie(movie: MovieCreateRequest):
+#     try:
+#         # Validate rating value
+#         if movie.rating < 0 or movie.rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Validate image URL format
+#         if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+#             raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
+
+#         text_image = await image_to_text(movie.image)
+#         print(text_image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=movie.title,
+#             description=movie.description,
+#             duration=movie.duration,
+#             language=movie.language,
+#             release_date=movie.release_date,
+#             genre=movie.genre,
+#             rating=movie.rating,
+#             image=psycopg2.binary(movie.image)
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
+# @router.post("/movies/add")
+# async def add_movie(
+#     title: str,
+#     description: str,
+#     duration: int,
+#     language: str,
+#     release_date: str,
+#     genre: str,
+#     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1),
+#     image: UploadFile = File(...)
+# ):
+#     try:
+#         # Validate rating value
+#         if rating < 0 or rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Read the image file
+#         image_data = await image.read()
+#         text_image = await image_to_text(image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=image_data  # Store the binary data
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+
+# @router.post("/movies/add")
+# async def add_movie(
+
+#     movie: MovieCreateRequest,
+
+#     title: str = Form(...),
+#     description: str = Form(...),
+#     duration: int = Form(...),
+#     language: str = Form(...),
+#     release_date: str = Form(...),
+#     genre: str = Form(...),
+#     rating: float = Form(...),
+#     image: UploadFile = File(...)
+# ):
+#     print("Received data:", movie)
+#     try:
+#         # Validate rating value
+#         if rating < 0 or rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Validate the image file type
+#         if not image.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+#             raise HTTPException(status_code=400, detail="Invalid image file. Must be an image file (e.g., .jpg, .png).")
+
+#         # Read the image file content as binary
+#         file_content = await image.read()
+
+#         # If you have a function `image_to_text`, you need to pass the binary content, not the URL
+#         text_image = await image_to_text(file_content)
+#         print(text_image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=psycopg2.Binary(file_content)  # Store binary data in the database
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
 @router.post("/movies/add")
-async def add_movie(movie: MovieCreateRequest):
+async def add_movie(
+    title: str = Form(...),
+    description: str = Form(...),
+    duration: int = Form(...),
+    language: str = Form(...),
+    release_date: str = Form(...),
+    genre: str = Form(...),
+    rating: float = Form(...),
+    image: UploadFile = File(...)
+):
     try:
         # Validate rating value
-        if movie.rating < 0 or movie.rating > 10:
+        if rating < 0 or rating > 10:
             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
 
-        # Validate image URL format
-        if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-            raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
+        # Validate the image file type
+        if not image.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+            raise HTTPException(status_code=400, detail="Invalid image file. Must be an image file (e.g., .jpg, .png).")
 
-        text_image = await image_to_text(movie.image)
+        # Read the image file content as binary
+        file_content = await image.read()
+
+        # If you have a function `image_to_text`, you need to pass the binary content, not the URL
+        text_image = await image_to_text(io.BytesIO(file_content))
         print(text_image)
 
         if not text_image:
@@ -294,14 +438,14 @@ async def add_movie(movie: MovieCreateRequest):
 
         # Call the insert_movies function to add the movie to the database
         new_movie = await insert_movies(
-            title=movie.title,
-            description=movie.description,
-            duration=movie.duration,
-            language=movie.language,
-            release_date=movie.release_date,
-            genre=movie.genre,
-            rating=movie.rating,
-            image=psycopg2.binary(movie.image)
+            title=title,
+            description=description,
+            duration=duration,
+            language=language,
+            release_date=release_date,
+            genre=genre,
+            rating=rating,
+            image=file_content  # Store binary data in the database
         )
 
         # Return the newly created movie data
@@ -310,6 +454,3 @@ async def add_movie(movie: MovieCreateRequest):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
-    
-
-    

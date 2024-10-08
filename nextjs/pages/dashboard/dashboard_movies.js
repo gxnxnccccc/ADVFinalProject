@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
@@ -18,6 +18,7 @@ export default function DashboardMovies() {
     rating: '',
     image: null, // Set initial image to null
   });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchMovies();
@@ -70,6 +71,10 @@ export default function DashboardMovies() {
 
   const handleClose = () => {
     setOpen(false);
+    // Reset only the text extraction and file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleChange = (e) => {
@@ -81,8 +86,10 @@ export default function DashboardMovies() {
   };
 
   const MoviehandleSubmit = async () => {
-    // Validate the rating
-    if (newMovie.rating < 0 || newMovie.rating > 10) {
+    const duration = parseInt(newMovie.duration, 10);
+    const rating = parseFloat(newMovie.rating);
+
+    if (rating < 0 || rating > 10) {
       alert("Rating must be between 0 and 10.");
       return;
     }
@@ -92,30 +99,35 @@ export default function DashboardMovies() {
       return;
     }
 
-    // Create a FormData object
+    // Convert release_date from DD-MM-YYYY to YYYY-MM-DD
+    const [day, month, year] = newMovie.release_date.split("-");
+    const formattedDate = `${year}-${month}-${day}`;
+
     const formData = new FormData();
     formData.append('title', newMovie.title);
     formData.append('description', newMovie.description);
-    formData.append('duration', newMovie.duration);
+    formData.append('duration', duration);
     formData.append('language', newMovie.language);
-    formData.append('release_date', newMovie.release_date);
+    formData.append('release_date', formattedDate); // Use formatted date
     formData.append('genre', newMovie.genre);
-    formData.append('rating', newMovie.rating);
-    formData.append('image', newMovie.image); // Append the image file
+    formData.append('rating', rating);
+    formData.append('image', newMovie.image);
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/movies/add', {
         method: 'POST',
-        body: formData, // Send FormData
+        body: formData,
       });
 
       if (!response.ok) {
         const errorResponse = await response.json();
-        throw new Error(errorResponse.detail || "Error adding movie");
+        console.error("Error adding movie:", errorResponse);
+        alert(`Error: ${errorResponse.detail}`);
+        return;
       }
 
-      await fetchMovies(); // Refresh the movie list
-      handleClose(); // Close the dialog
+      await fetchMovies();
+      handleClose();
       setNewMovie({
         title: '',
         description: '',
@@ -124,9 +136,9 @@ export default function DashboardMovies() {
         release_date: '',
         genre: '',
         rating: '',
-        image: null, // Reset image to null
+        image: null,
       });
-      setText(''); // Reset extracted text
+      setText('');
     } catch (error) {
       console.error("Error adding movie:", error);
     }
@@ -205,12 +217,12 @@ export default function DashboardMovies() {
             <TextField
               margin="dense"
               label="Release Date"
-              type="date"
+              type="text"
               fullWidth
               name="release_date"
+              placeholder="DD-MM-YYYY"
               value={newMovie.release_date}
               onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
             />
             <TextField
               margin="dense"
@@ -232,16 +244,11 @@ export default function DashboardMovies() {
               inputProps={{ step: "0.1", min: "0", max: "10" }}
             />
             <div>
-              <TextField
-                margin="dense"
-                label="Image"
+              <input
                 type="file"
-                fullWidth
+                ref={fileInputRef}
                 accept="image/*"
                 onChange={handleFileChange}
-                InputLabelProps={{
-                  shrink: true,
-                }}
               />
               {loading && <p>Processing...</p>}
               {text && (

@@ -2,7 +2,9 @@ fastapi[standard]
 uvicorn
 databases[asyncpg]
 pydantic
+
 fastapi_login
 bcrypt
 Pillow
 pytesseract
+psycopg2-binary
