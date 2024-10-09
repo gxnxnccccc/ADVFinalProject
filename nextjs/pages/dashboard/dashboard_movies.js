@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia, Stack, Container } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
-import { StackOrder } from '@mui/x-charts/internals/stackSeries';
-import { CenterFocusStrong } from '@mui/icons-material';
+// import { StackOrder } from '@mui/x-charts/internals/stackSeries';
+// import { CenterFocusStrong } from '@mui/icons-material';
 
 export default function DashboardMovies() {
   const [movies, setMovies] = useState([]);
@@ -169,6 +169,7 @@ export default function DashboardMovies() {
                   <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
                   update movie
                   </Button>
+                  
                 </CardContent>
               </Card>
             </Grid>
@@ -268,6 +269,101 @@ export default function DashboardMovies() {
           <DialogActions>
             <Button onClick={handleClose} color="secondary">Cancel</Button>
             <Button onClick={MoviehandleSubmit} color="primary">Add</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={open} onClose={handleClose}>
+          <DialogTitle>Update Movie</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              label="Title"
+              type="text"
+              fullWidth
+              name="title"
+              value={newMovie.title}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="dense"
+              label="Description"
+              type="text"
+              fullWidth
+              name="description"
+              value={newMovie.description}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="dense"
+              label="Duration"
+              type="number"
+              fullWidth
+              name="duration"
+              value={newMovie.duration}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="dense"
+              label="Language"
+              type="text"
+              fullWidth
+              name="language"
+              value={newMovie.language}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="dense"
+              label="Release Date"
+              type="date"
+              fullWidth
+              name="release_date"
+              value={newMovie.release_date}
+              onChange={handleChange}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              margin="dense"
+              label="Genre"
+              type="text"
+              fullWidth
+              name="genre"
+              value={newMovie.genre}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="dense"
+              label="Rating"
+              type="number"
+              fullWidth
+              name="rating"
+              value={newMovie.rating}
+              onChange={handleChange}
+              inputProps={{ step: "0.1", min: "0", max: "10" }}
+            />
+            <div>
+              <TextField
+                margin="dense"
+                label="Image"
+                type="file"
+                fullWidth
+                accept="image/*"
+                onChange={handleFileChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              {loading && <p>Processing...</p>}
+              {/* {text && (
+                <div>
+                  <h2>Extracted Text:</h2>
+                  <p>{text}</p>
+                </div>
+              )} */}
+            </div>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="secondary">Cancel</Button>
+            <Button onClick={MoviehandleSubmit} color="primary">Update</Button>
           </DialogActions>
         </Dialog>
       </Box>

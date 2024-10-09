@@ -183,4 +183,42 @@ async def insert_movies(title: str, description: str, duration: int, language: s
         "rating": rating,  # Storing the rating as a float
         "image": image
     }
+    print(query, values)
+    return await database.fetch_one(query=query, values=values)
+
+async def get_movie_by_movie_id(movie_id: int):
+    query = "SELECT movie_id, title, description, duration, language, release_date, genre, rating, image FROM movies WHERE title = :title"
+    values = {"movie_id": movie_id}
+    return await database.fetch_one(query=query, values=values)
+
+async def update_movie_data(movie_id: int, title: str, description: Optional[str], duration: Optional[str], language: Optional[str], release_date: Optional[str], genre: Optional[str], rating: Optional[str], image: Optional[bytes]):
+    values = {}
+    if title:
+        values["title"] = title
+    if description:
+        values["description"] = description
+    if duration:
+        values["duration"] = duration
+    if language:
+        values["language"] = language
+    if release_date:
+        values["release_date"] = release_date
+    if genre:
+        values["genre"] = genre
+    if rating:
+        values["rating"] = rating
+    if image:
+        values["image"] = image
+
+    # Build the SET part of the query dynamically based on the fields provided
+    set_clause = ", ".join([f"{key} = :{key}" for key in values])
+
+    query = f"""
+    UPDATE movies
+    SET {set_clause}
+    WHERE movie_id = :movie_id
+    RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
+    """
+    values["movie_id"] = movie_id
+
     return await database.fetch_one(query=query, values=values)

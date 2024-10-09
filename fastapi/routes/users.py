@@ -4,7 +4,8 @@ from pydantic import BaseModel, EmailStr, Field
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
     delete_user_data, get_all_users, get_all_tables, get_current_database,
-    update_user_data, insert_movies, get_all_movies
+    update_user_data, insert_movies, get_all_movies, get_movie_by_movie_id,
+    update_movie_data
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -44,6 +45,16 @@ class UserUpdateRequest(BaseModel):
     email: Optional[EmailStr] = None
     gender: Optional[str] = None
     phone_number: Optional[str] = None
+
+class MovieUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    duration: Optional[int] = None
+    language: Optional[str] = None
+    release_date: Optional[str] = None
+    genre: Optional[str] = None
+    rating: Optional[float] = None
+    image: Optional[bytes] = None
 
 # class MovieCreateRequest(BaseModel):
 #     title: str
@@ -207,37 +218,37 @@ async def current_database():
     tables = await get_current_database()
     return {"tables": tables}
 
-@router.post("/user/update")
-async def update_user(
-    update_data: UserUpdateRequest,
-    current_user: dict = Depends(manager) # This depends on the token validation
-):
-    try:
-        # Fetch the current user's username from the JWT token
-        username = current_user.get("username")
-        if not username:
-            raise HTTPException(status_code=401, detail="Unauthorized")
+# @router.post("/user/update")
+# async def update_user(
+#     update_data: UserUpdateRequest,
+#     current_user: dict = Depends(manager) # This depends on the token validation
+# ):
+#     try:
+#         # Fetch the current user's username from the JWT token
+#         username = current_user.get("username")
+#         if not username:
+#             raise HTTPException(status_code=401, detail="Unauthorized")
 
-        # Check if the user exists
-        user_data = await get_user_by_username(username)
-        if not user_data:
-            raise HTTPException(status_code=404, detail="User not found")
+#         # Check if the user exists
+#         user_data = await get_user_by_username(username)
+#         if not user_data:
+#             raise HTTPException(status_code=404, detail="User not found")
 
-        # Update user information
-        updated_user = await update_user_data(
-            username=username,
-            email=update_data.email,
-            gender=update_data.gender,
-            phone_number=update_data.phone_number
-        )
+#         # Update user information
+#         updated_user = await update_user_data(
+#             username=username,
+#             email=update_data.email,
+#             gender=update_data.gender,
+#             phone_number=update_data.phone_number
+#         )
 
-        if updated_user:
-            return {"message": "User information updated successfully", "user": updated_user}
-        else:
-            raise HTTPException(status_code=404, detail="User not found")
+#         if updated_user:
+#             return {"message": "User information updated successfully", "user": updated_user}
+#         else:
+#             raise HTTPException(status_code=404, detail="User not found")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
 @router.post("/user/update")
 async def update_user(
@@ -479,3 +490,31 @@ async def add_movie(
         return {"message": "Movie created successfully", "movie": new_movie}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
+@router.post("/movie/update")
+async def update_movie(
+    movie_id: int, 
+    update_data: MovieUpdateRequest,
+    
+):
+    try:
+        # Update user information
+        updated_movie = await update_movie_data(
+            movie_id=movie_id,
+            title=update_data.title,
+            description=update_data.description,
+            duration=update_data.duration,
+            language=update_data.language,
+            release_date=update_data.release_date,
+            genre=update_data.genre,
+            rating=update_data.rating,
+            image=update_data.image
+        )
+
+        if updated_movie:
+            return {"message": "Movie information updated successfully", "movie": updated_movie}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
