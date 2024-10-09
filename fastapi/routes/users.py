@@ -416,31 +416,62 @@ async def image_to_text(image_file: UploadFile) -> str:
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
     
+# @router.post("/movies/add")
+# async def add_movie(
+#     title: str = Form(...),
+#     description: str = Form(...),
+#     duration: int = Form(...),
+#     language: str = Form(...),
+#     release_date: str = Form(...),
+#     genre: str = Form(...),
+#     rating: float = Form(...),
+#     image: UploadFile = File(...)
+# ):
+#     try:
+#         # Read the file content as binary
+#         file_content = await image.read()
+        
+#         # Call the insert_movies function (ensure this function is working as expected)
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=file_content  # Storing as binary data
+#         )
+        
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+
 @router.post("/movies/add")
 async def add_movie(
     title: str = Form(...),
     description: str = Form(...),
     duration: int = Form(...),
     language: str = Form(...),
-    release_date: str = Form(...),
+    release_date: str = Form(...),  # This remains a string
     genre: str = Form(...),
-    rating: float = Form(...),
-    # image: UploadFile = File(...)
+    rating: float = Form(...),  # This remains a float
+    image: UploadFile = File(...)
 ):
     try:
         # Read the file content as binary
-        # file_content = await image.read()
+        file_content = await image.read()
         
-        # Call the insert_movies function (ensure this function is working as expected)
+        # Call the insert_movies function
         new_movie = await insert_movies(
             title=title,
             description=description,
             duration=duration,
             language=language,
-            release_date=release_date,
+            release_date=release_date,  # Directly passing the string
             genre=genre,
-            rating=rating,
-            # image=file_content  # Storing as binary data
+            rating=rating,  # Passing the rating as a float
+            image=file_content  # Storing as binary data
         )
         
         return {"message": "Movie created successfully", "movie": new_movie}

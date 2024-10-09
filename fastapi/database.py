@@ -134,22 +134,38 @@ async def get_all_movies():
 #     }
 #     return await database.fetch_one(query=query, values=values)
 
-async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float):
+# async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float):
+#     query = """
+#     INSERT INTO movies (title, description, duration, language, release_date, genre, rating)
+#     VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating)
+#     RETURNING movie_id, title, description, duration, language, release_date, genre, rating
+#     """
+#     values = {
+#         "title": title,
+#         "description": description,
+#         "duration": duration,
+#         "language": language,
+#         "release_date": release_date,
+#         "genre": genre,
+#         "rating": rating,
+#         # "image": image
+#     }
+#     return await database.fetch_one(query=query, values=values)
+
+async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
     query = """
-    INSERT INTO movies (title, description, duration, language, release_date, genre, rating)
-    VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating)
-    RETURNING movie_id, title, description, duration, language, release_date, genre, rating
+    INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
+    VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
+    RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
     """
     values = {
         "title": title,
         "description": description,
         "duration": duration,
         "language": language,
-        "release_date": release_date,
+        "release_date": release_date,  # Storing the date as a string
         "genre": genre,
-        "rating": rating,
-        # "image": image
+        "rating": rating,  # Storing the rating as a float
+        "image": image
     }
     return await database.fetch_one(query=query, values=values)
-
-

@@ -246,12 +246,12 @@ export default function DashboardMovies() {
                 }}
               />
               {loading && <p>Processing...</p>}
-              {text && (
+              {/* {text && (
                 <div>
                   <h2>Extracted Text:</h2>
                   <p>{text}</p>
                 </div>
-              )}
+              )} */}
             </div>
           </DialogContent>
           <DialogActions>
