@@ -3,6 +3,8 @@ import asyncpg
 import asyncio
 from typing import Optional
 
+import base64
+
 POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "password"
 POSTGRES_DB = "finalproject"
@@ -110,11 +112,24 @@ async def disconnect_db():
 
 async def get_all_movies():
     query = """
-    SELECT movie_id, title, description, duration, language, release_date, genre, rating, image
+    SELECT movie_id, title, description, duration, language, release_date, genre, rating,
+           encode(image, 'base64') AS image_base64
     FROM movies
     ORDER BY release_date DESC;
     """
-    return await database.fetch_all(query=query)
+    movies = await database.fetch_all(query=query)
+    # movies_with_images = []
+    # for movie in movies:
+    #     if movie.image: 
+    #         # แปลงเป็น Base64
+    #         try:
+    #             movie.image = base64.b64encode(movie.image).decode('ascii') 
+    #         except Exception as e:
+    #             print(f"Error converting image to Base64: {e}")
+    #             movie.image = None
+    #     movies_with_images.append(movie)
+
+    return movies
 
 # async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
 #     query = """

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia } from '@mui/material';
+import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia, Stack, Container } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
+import { StackOrder } from '@mui/x-charts/internals/stackSeries';
+import { CenterFocusStrong } from '@mui/icons-material';
 
 export default function DashboardMovies() {
   const [movies, setMovies] = useState([]);
@@ -120,12 +122,12 @@ export default function DashboardMovies() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorResponse = await response.json();
-        console.error("Error adding movie:", errorResponse);
-        alert(`Error: ${errorResponse.detail}`);
-        return;
-      }
+      // if (!response.ok) {
+      //   const errorResponse = await response.json();
+      //   console.error("Error adding movie:", errorResponse);
+      //   alert(`Error: ${errorResponse.detail}`);
+      //   return;
+      // }
 
       await fetchMovies(); // Refresh the movie list
       handleClose(); // Close the dialog
@@ -137,19 +139,25 @@ export default function DashboardMovies() {
   return (
     <>
       <DashboardNavigationBar />
-      <Box sx={{ mt: 4, px: 2 }}>
+      
+      <Box container spacing={4} sx={{ mt: 4 }}>...</Box>
+      <Box sx={{ mt: 160, px: 2, alignItems: "center" }}>
+        <Stack alignItems="center">
         <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          Add Movie
-        </Button>
+          <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
+            Add Movie
+          </Button>
+        </Stack>
+        <Container sx={{ marginBottom: '4rem' }} maxWidth="md">
         <Grid container spacing={4} sx={{ mt: 4 }}>
           {movies.map((movie) => (
             <Grid item xs={12} sm={6} md={4} key={movie.movie_id}>
               <Card sx={{ backgroundColor: '#333', color: '#ffffff' }}>
                 <CardMedia
                   component="img"
-                  height="140"
-                  image={movie.image}
+                  style={{ width: '100%', height: 'auto' }}
+                  
+                  image={`data:image/jpg;base64,${movie.image_base64}`}
                   alt={movie.title}
                 />
                 <CardContent>
@@ -158,12 +166,15 @@ export default function DashboardMovies() {
                   <Typography variant="body2" sx={{ mb: 1 }}>{movie.language}</Typography>
                   <Typography variant="body2">{`Duration: ${movie.duration} mins`}</Typography>
                   <Typography variant="body2">{`Rating: ${movie.rating}`}</Typography>
+                  <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
+                  update movie
+                  </Button>
                 </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
-
+        </Container>
         {/* Add Movie Dialog */}
         <Dialog open={open} onClose={handleClose}>
           <DialogTitle>Add New Movie</DialogTitle>

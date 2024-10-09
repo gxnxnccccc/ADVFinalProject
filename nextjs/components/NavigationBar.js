@@ -66,7 +66,7 @@ const NavigationLayout = ({ children }) => {
 
           <NavigationLink href="/movies" label="MOVIES" font='Proelium' />
           <NavigationLink href="/favorites" label="FAVORITES" font='Proelium' />
-          <NavigationLink href="/wishlists" label="WISHLISTS" font='Proelium' />
+          {/* <NavigationLink href="/wishlists" label="WISHLISTS" font='Proelium' /> */}
           {isAdmin && <NavigationLink href="/dashboard/dashboard_index" label="DASHBOARD" font='Proelium' />}
 
           <Box sx={{ flexGrow: 1 }} />

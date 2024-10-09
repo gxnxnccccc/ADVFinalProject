@@ -270,7 +270,9 @@ async def update_user(
 @router.get("/movies")
 async def fetch_movies():
     try:
+        print(1)
         movies = await get_all_movies()
+        print(movies)
         return {"message": "Movies fetched successfully", "movies": movies}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching movies: {str(e)}")
