@@ -116,11 +116,29 @@ async def get_all_movies():
     """
     return await database.fetch_all(query=query)
 
-async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
+# async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
+#     query = """
+#     INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
+#     VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
+#     RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
+#     """
+#     values = {
+#         "title": title,
+#         "description": description,
+#         "duration": duration,
+#         "language": language,
+#         "release_date": release_date,
+#         "genre": genre,
+#         "rating": rating,
+#         "image": image
+#     }
+#     return await database.fetch_one(query=query, values=values)
+
+async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float):
     query = """
-    INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
-    VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
-    RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
+    INSERT INTO movies (title, description, duration, language, release_date, genre, rating)
+    VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating)
+    RETURNING movie_id, title, description, duration, language, release_date, genre, rating
     """
     values = {
         "title": title,
@@ -130,7 +148,8 @@ async def insert_movies(title: str, description: str, duration: int, language: s
         "release_date": release_date,
         "genre": genre,
         "rating": rating,
-        "image": image
+        # "image": image
     }
     return await database.fetch_one(query=query, values=values)
+
 

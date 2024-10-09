@@ -1,4 +1,4 @@
-version: '3.8'  # Adjust version based on your Docker version if needed
+# version: '3.8'  # Adjust version based on your Docker version if needed
 
 services:
   nextjs:

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
@@ -18,7 +18,6 @@ export default function DashboardMovies() {
     rating: '',
     image: null, // Set initial image to null
   });
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchMovies();
@@ -71,10 +70,17 @@ export default function DashboardMovies() {
 
   const handleClose = () => {
     setOpen(false);
-    // Reset only the text extraction and file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setNewMovie({
+      title: '',
+      description: '',
+      duration: '',
+      language: '',
+      release_date: '',
+      genre: '',
+      rating: '',
+      image: null, // Reset image to null
+    });
+    setText(''); // Reset extracted text
   };
 
   const handleChange = (e) => {
@@ -86,10 +92,8 @@ export default function DashboardMovies() {
   };
 
   const MoviehandleSubmit = async () => {
-    const duration = parseInt(newMovie.duration, 10);
-    const rating = parseFloat(newMovie.rating);
-
-    if (rating < 0 || rating > 10) {
+    // Validate the rating
+    if (newMovie.rating < 0 || newMovie.rating > 10) {
       alert("Rating must be between 0 and 10.");
       return;
     }
@@ -99,18 +103,15 @@ export default function DashboardMovies() {
       return;
     }
 
-    // Convert release_date from DD-MM-YYYY to YYYY-MM-DD
-    const [day, month, year] = newMovie.release_date.split("-");
-    const formattedDate = `${year}-${month}-${day}`;
-
+    // Create a FormData object
     const formData = new FormData();
     formData.append('title', newMovie.title);
     formData.append('description', newMovie.description);
-    formData.append('duration', duration);
+    formData.append('duration', newMovie.duration);
     formData.append('language', newMovie.language);
-    formData.append('release_date', formattedDate); // Use formatted date
+    formData.append('release_date', newMovie.release_date);
     formData.append('genre', newMovie.genre);
-    formData.append('rating', rating);
+    formData.append('rating', newMovie.rating);
     formData.append('image', newMovie.image);
 
     try {
@@ -126,19 +127,8 @@ export default function DashboardMovies() {
         return;
       }
 
-      await fetchMovies();
-      handleClose();
-      setNewMovie({
-        title: '',
-        description: '',
-        duration: '',
-        language: '',
-        release_date: '',
-        genre: '',
-        rating: '',
-        image: null,
-      });
-      setText('');
+      await fetchMovies(); // Refresh the movie list
+      handleClose(); // Close the dialog
     } catch (error) {
       console.error("Error adding movie:", error);
     }
@@ -217,12 +207,12 @@ export default function DashboardMovies() {
             <TextField
               margin="dense"
               label="Release Date"
-              type="text"
+              type="date"
               fullWidth
               name="release_date"
-              placeholder="DD-MM-YYYY"
               value={newMovie.release_date}
               onChange={handleChange}
+              InputLabelProps={{ shrink: true }}
             />
             <TextField
               margin="dense"
@@ -244,11 +234,16 @@ export default function DashboardMovies() {
               inputProps={{ step: "0.1", min: "0", max: "10" }}
             />
             <div>
-              <input
+              <TextField
+                margin="dense"
+                label="Image"
                 type="file"
-                ref={fileInputRef}
+                fullWidth
                 accept="image/*"
                 onChange={handleFileChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
               {loading && <p>Processing...</p>}
               {text && (

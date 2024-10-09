@@ -133,7 +133,7 @@ const UserProfile = () => {
         {/* <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Phone Number: {phoneNumber}</Typography> */}
         <Divider sx={{ margin: '20px 0' }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
-          {/* <Button
+          <Button
             variant="contained"
             color="primary"
             onClick={() => router.push("/user_profile/edits")}
@@ -158,7 +158,7 @@ const UserProfile = () => {
             }}
           >
             DELETE ACCOUNT
-          </Button> */}
+          </Button>
           <Button
             variant="contained"
             color="secondary"

@@ -45,6 +45,17 @@ class UserUpdateRequest(BaseModel):
     gender: Optional[str] = None
     phone_number: Optional[str] = None
 
+# class MovieCreateRequest(BaseModel):
+#     title: str
+#     description: str
+#     duration: int
+#     language: str
+#     release_date: str
+#     genre: str
+#     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1)
+#     image: bytes
+
+# No 'image' field here because it's handled separately as an UploadFile
 class MovieCreateRequest(BaseModel):
     title: str
     description: str
@@ -52,8 +63,7 @@ class MovieCreateRequest(BaseModel):
     language: str
     release_date: str
     genre: str
-    rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1)
-    image: bytes
+    rating: float = Field(..., gt=0, lt=10)
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
@@ -229,33 +239,33 @@ async def update_user(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
-# @router.post("/user/update")
-# async def update_user(
-#     update_data: UserUpdateRequest,
-#     current_user: dict = Depends(LoginManager.user_loader)
-# ):
-#     try:
-#         # Fetch the user data using the current username
-#         username = current_user.get("username")
-#         if not username:
-#             raise HTTPException(status_code=401, detail="Unauthorized")
+@router.post("/user/update")
+async def update_user(
+    update_data: UserUpdateRequest,
+    current_user: dict = Depends(LoginManager.user_loader)
+):
+    try:
+        # Fetch the user data using the current username
+        username = current_user.get("username")
+        if not username:
+            raise HTTPException(status_code=401, detail="Unauthorized")
 
-#         user_data = await get_user_by_username(username)
-#         if not user_data:
-#             raise HTTPException(status_code=404, detail="User not found")
+        user_data = await get_user_by_username(username)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
 
-#         # Update user information
-#         updated_user = await update_user_data(
-#             username=username,
-#             email=update_data.email,
-#             gender=update_data.gender,
-#             phone_number=update_data.phone_number
-#         )
+        # Update user information
+        updated_user = await update_user_data(
+            username=username,
+            email=update_data.email,
+            gender=update_data.gender,
+            phone_number=update_data.phone_number
+        )
 
-#         return {"message": "User information updated successfully", "user": updated_user}
+        return {"message": "User information updated successfully", "user": updated_user}
 
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
 @router.get("/movies")
 async def fetch_movies():
@@ -268,8 +278,8 @@ async def fetch_movies():
 async def image_to_text(image_file: UploadFile) -> str:
     try:
         image_data = await image_file.read()
-        image = Image.open(io.BytesIO(image_data)) 
-        text = pytesseract.image_to_string(image) 
+        image = Image.open(io.BytesIO(image_data))
+        text = pytesseract.image_to_string(image)
         return text
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -415,28 +425,13 @@ async def add_movie(
     release_date: str = Form(...),
     genre: str = Form(...),
     rating: float = Form(...),
-    image: UploadFile = File(...)
+    # image: UploadFile = File(...)
 ):
     try:
-        # Validate rating value
-        if rating < 0 or rating > 10:
-            raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
-
-        # Validate the image file type
-        if not image.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-            raise HTTPException(status_code=400, detail="Invalid image file. Must be an image file (e.g., .jpg, .png).")
-
-        # Read the image file content as binary
-        file_content = await image.read()
-
-        # If you have a function `image_to_text`, you need to pass the binary content, not the URL
-        text_image = await image_to_text(io.BytesIO(file_content))
-        print(text_image)
-
-        if not text_image:
-            raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
-
-        # Call the insert_movies function to add the movie to the database
+        # Read the file content as binary
+        # file_content = await image.read()
+        
+        # Call the insert_movies function (ensure this function is working as expected)
         new_movie = await insert_movies(
             title=title,
             description=description,
@@ -445,12 +440,9 @@ async def add_movie(
             release_date=release_date,
             genre=genre,
             rating=rating,
-            image=file_content  # Store binary data in the database
+            # image=file_content  # Storing as binary data
         )
-
-        # Return the newly created movie data
+        
         return {"message": "Movie created successfully", "movie": new_movie}
-    except HTTPException as e:
-        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
