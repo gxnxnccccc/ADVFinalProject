@@ -252,28 +252,24 @@ async def current_database():
 
 @router.post("/user/update")
 async def update_user(
-    update_data: UserUpdateRequest,
-    current_user: dict = Depends(LoginManager.user_loader)
+    user_id: int,
+    username: Optional[str],
+    # email: Optional[EmailStr], gender: Optional[str], phone_number: Optional[str],
+    update_data: UserUpdateRequest
 ):
     try:
-        # Fetch the user data using the current username
-        username = current_user.get("username")
-        if not username:
-            raise HTTPException(status_code=401, detail="Unauthorized")
-
-        user_data = await get_user_by_username(username)
-        if not user_data:
-            raise HTTPException(status_code=404, detail="User not found")
-
         # Update user information
         updated_user = await update_user_data(
+            user_id=user_id,
             username=username,
             email=update_data.email,
             gender=update_data.gender,
             phone_number=update_data.phone_number
         )
-
-        return {"message": "User information updated successfully", "user": updated_user}
+        if updated_user:
+            return {"message": "User information updated successfully", "user": updated_user}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
