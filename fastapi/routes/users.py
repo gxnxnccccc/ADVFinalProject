@@ -46,6 +46,18 @@ class UserUpdateRequest(BaseModel):
     gender: Optional[str] = None
     phone_number: Optional[str] = None
 
+class UserDeleteRequest(BaseModel):
+    user_id: int
+
+class MovieCreateRequest(BaseModel):
+    title: str
+    description: str
+    duration: int
+    language: str
+    release_date: str
+    genre: str
+    rating: float = Field(..., gt=0, lt=10)
+
 class MovieUpdateRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -56,25 +68,15 @@ class MovieUpdateRequest(BaseModel):
     rating: Optional[float] = None
     image: Optional[bytes] = None
 
-# class MovieCreateRequest(BaseModel):
-#     title: str
-#     description: str
-#     duration: int
-#     language: str
-#     release_date: str
-#     genre: str
-#     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1)
-#     image: bytes
-
-# No 'image' field here because it's handled separately as an UploadFile
-class MovieCreateRequest(BaseModel):
-    title: str
-    description: str
-    duration: int
-    language: str
-    release_date: str
-    genre: str
-    rating: float = Field(..., gt=0, lt=10)
+class MovieDeleteRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    duration: Optional[int] = None
+    language: Optional[str] = None
+    release_date: Optional[str] = None
+    genre: Optional[str] = None
+    rating: Optional[float] = None
+    image: Optional[bytes] = None
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
@@ -145,11 +147,15 @@ async def login_user(user: UserLoginRequest):
 
 # Delete user account
 @router.delete("/user/delete")
-async def delete_user(username: str, current_user: dict = Depends(manager)):
+async def delete_user(user_id: int, current_user: dict = Depends(manager)):
     try:
-        if current_user["username"] != username:
+        # Check if the current user is authorized to delete the account
+        if current_user["user_id"] != user_id:
             raise HTTPException(status_code=403, detail="You are not authorized to delete this account")
-        await delete_user_data(username)
+        
+        # Perform the delete operation
+        await delete_user_data(user_id)
+        
         return {"message": "Account deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting account: {str(e)}")
@@ -218,62 +224,6 @@ async def current_database():
     tables = await get_current_database()
     return {"tables": tables}
 
-# @router.post("/user/update")
-# async def update_user(
-#     update_data: UserUpdateRequest,
-#     current_user: dict = Depends(manager) # This depends on the token validation
-# ):
-#     try:
-#         # Fetch the current user's username from the JWT token
-#         username = current_user.get("username")
-#         if not username:
-#             raise HTTPException(status_code=401, detail="Unauthorized")
-
-#         # Check if the user exists
-#         user_data = await get_user_by_username(username)
-#         if not user_data:
-#             raise HTTPException(status_code=404, detail="User not found")
-
-#         # Update user information
-#         updated_user = await update_user_data(
-#             username=username,
-#             email=update_data.email,
-#             gender=update_data.gender,
-#             phone_number=update_data.phone_number
-#         )
-
-#         if updated_user:
-#             return {"message": "User information updated successfully", "user": updated_user}
-#         else:
-#             raise HTTPException(status_code=404, detail="User not found")
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
-
-# @router.post("/user/update")
-# async def update_user(
-#     user_id: int,
-#     username: Optional[str],
-#     # email: Optional[EmailStr], gender: Optional[str], phone_number: Optional[str],
-#     update_data: UserUpdateRequest
-# ):
-#     try:
-#         # Update user information
-#         updated_user = await update_user_data(
-#             user_id=user_id,
-#             username=username,
-#             email=update_data.email,
-#             gender=update_data.gender,
-#             phone_number=update_data.phone_number
-#         )
-#         if updated_user:
-#             return {"message": "User information updated successfully", "user": updated_user}
-#         else:
-#             raise HTTPException(status_code=404, detail="User not found")
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
-
 @router.post("/user/update")
 async def update_user(
     user_id: int,
@@ -294,6 +244,27 @@ async def update_user(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+    
+# @router.delete("/user/delete")
+# async def delete_user(
+#     user_id: int,
+#     user_delete_data: UserDeleteRequest
+# ):
+#     try:
+#         # Update user information
+#         updated_user = await update_user_data(
+#             user_id=user_delete_data.user_id,
+#             email=user_delete_data.email,
+#             gender=user_delete_data.gender,
+#             phone_number=user_delete_data.phone_number
+#         )
+#         if updated_user:
+#             return {"message": "User deleted successfully", "user": user_delete_data}
+#         else:
+#             raise HTTPException(status_code=404, detail="User not found")
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
 @router.get("/movies")
 async def fetch_movies():

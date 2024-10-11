@@ -141,7 +141,7 @@ export default function DashboardMovies() {
       <DashboardNavigationBar />
       
       <Box container spacing={4} sx={{ mt: 4 }}>...</Box>
-      <Box sx={{ mt: 160, px: 2, alignItems: "center" }}>
+      <Box sx={{ mt: 700, px: 2, alignItems: "center" }}>
         <Stack alignItems="center">
         <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
           <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
