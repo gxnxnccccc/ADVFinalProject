@@ -130,7 +130,7 @@ const UserProfile = () => {
         <Divider sx={{ margin: '10px 0' }} />
         <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Email: {email}</Typography>
         <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Gender: {gender}</Typography>
-        {/* <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Phone Number: {phoneNumber}</Typography> */}
+        <Typography variant="body1" sx={{ marginBottom: '8px', fontFamily: 'Proelium, sans-serif' }}>Phone Number: {phoneNumber}</Typography>
         <Divider sx={{ margin: '20px 0' }} />
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
           <Button

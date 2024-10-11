@@ -57,10 +57,32 @@ async def delete_user_data(username: str, movie_id: int):
     await database.execute("DELETE FROM users WHERE username = :username", {"username": username})
     await database.execute("DELETE FROM movies WHERE movie_id = :movie_id", {"movie_id": movie_id})
 
-async def update_user_data(user_id: int, username: str, email: Optional[str], gender: Optional[str], phone_number: Optional[str]):
+# async def update_user_data(user_id: int, username: str, email: Optional[str], gender: Optional[str], phone_number: Optional[str]):
+#     values = {}
+#     if username:
+#         values["username"] = username
+#     if email:
+#         values["email"] = email
+#     if gender:
+#         values["gender"] = gender
+#     if phone_number:
+#         values["phone_number"] = phone_number
+
+#     # Build the SET part of the query dynamically based on the fields provided
+#     set_clause = ", ".join([f"{key} = :{key}" for key in values])
+
+#     query = f"""
+#     UPDATE users
+#     SET {set_clause}
+#     WHERE user_id = :user_id
+#     RETURNING user_id, username, email, gender, phone_number
+#     """
+#     values["user_id"] = user_id
+
+#     return await database.fetch_one(query=query, values=values)
+
+async def update_user_data(user_id: int, email: Optional[str], gender: Optional[str], phone_number: Optional[str]):
     values = {}
-    if username:
-        values["username"] = username
     if email:
         values["email"] = email
     if gender:

@@ -52,7 +52,7 @@ const EditProfile = () => {
         setPhoneNumber(newPhoneNumber);
 
         // Redirect back to the profile page
-        router.push("/user_profile");
+        router.push("/profile");
       } else {
         console.error('Failed to update user data');
       }
@@ -140,7 +140,7 @@ const EditProfile = () => {
           <Button
             variant="outlined"
             color="secondary"
-            onClick={() => router.push("/user_profile")}
+            onClick={() => router.push("/profile")}
             sx={{ 
               marginTop: '10px', 
               width: '100%', 

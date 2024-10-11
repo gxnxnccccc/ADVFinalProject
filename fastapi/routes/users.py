@@ -250,18 +250,39 @@ async def current_database():
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
+# @router.post("/user/update")
+# async def update_user(
+#     user_id: int,
+#     username: Optional[str],
+#     # email: Optional[EmailStr], gender: Optional[str], phone_number: Optional[str],
+#     update_data: UserUpdateRequest
+# ):
+#     try:
+#         # Update user information
+#         updated_user = await update_user_data(
+#             user_id=user_id,
+#             username=username,
+#             email=update_data.email,
+#             gender=update_data.gender,
+#             phone_number=update_data.phone_number
+#         )
+#         if updated_user:
+#             return {"message": "User information updated successfully", "user": updated_user}
+#         else:
+#             raise HTTPException(status_code=404, detail="User not found")
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+
 @router.post("/user/update")
 async def update_user(
     user_id: int,
-    username: Optional[str],
-    # email: Optional[EmailStr], gender: Optional[str], phone_number: Optional[str],
     update_data: UserUpdateRequest
 ):
     try:
         # Update user information
         updated_user = await update_user_data(
             user_id=user_id,
-            username=username,
             email=update_data.email,
             gender=update_data.gender,
             phone_number=update_data.phone_number
