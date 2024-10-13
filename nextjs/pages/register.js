@@ -47,8 +47,8 @@ const LoginPage = () => {
   });
   console.log(1)
     try {
-      // const response = await fetch('http://127.0.0.1:8000/api/user/login', {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`, {
+      const response = await fetch('http://127.0.0.1:8000/api/user/login', {
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,6 +73,7 @@ const LoginPage = () => {
       // Store JWT token in localStorage
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('username', loginUsername); 
+      localStorage.setItem('user_id', data.user_id); 
       
       setNotification(data.message);
 

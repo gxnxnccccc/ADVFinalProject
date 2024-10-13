@@ -5,7 +5,7 @@ from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
     delete_user_data, get_all_users, get_all_tables, get_current_database,
     update_user_data, insert_movies, get_all_movies, get_movie_by_movie_id,
-    update_movie_data
+    update_movie_data, delete_movie_data
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -66,17 +66,10 @@ class MovieUpdateRequest(BaseModel):
     release_date: Optional[str] = None
     genre: Optional[str] = None
     rating: Optional[float] = None
-    image: Optional[bytes] = None
+    # image: Optional[bytes] = None
 
-class MovieDeleteRequest(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    duration: Optional[int] = None
-    language: Optional[str] = None
-    release_date: Optional[str] = None
-    genre: Optional[str] = None
-    rating: Optional[float] = None
-    image: Optional[bytes] = None
+# class MovieDeleteRequest(BaseModel):
+#     movie_id: int
 
 # Dependency to get the current logged-in user from the JWT token
 @manager.user_loader
@@ -130,7 +123,8 @@ async def login_user(user: UserLoginRequest):
                 "message": "Login successful!", 
                 "user": dict(user_data), 
                 "role": "User",
-                "access_token": access_token  # Include JWT in the response
+                "access_token": access_token,  # Include JWT in the response
+                "user_id": user_data.user_id
             })
 
             cookie_name = f"access_token_{user_data['username']}"
@@ -224,7 +218,7 @@ async def current_database():
     tables = await get_current_database()
     return {"tables": tables}
 
-@router.post("/user/update")
+@router.put("/user/update")
 async def update_user(
     user_id: int,
     # username: str,
@@ -481,7 +475,7 @@ async def add_movie(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
     
-@router.post("/movie/update")
+@router.put("/movie/update")
 async def update_movie(
     movie_id: int, 
     update_data: MovieUpdateRequest,
@@ -498,13 +492,30 @@ async def update_movie(
             release_date=update_data.release_date,
             genre=update_data.genre,
             rating=update_data.rating,
-            image=update_data.image
+            # image=update_data.image
         )
 
         if updated_movie:
             return {"message": "Movie information updated successfully", "movie": updated_movie}
         else:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="Movie not found")
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting user: {str(e)}")
+    
+@router.delete("/movie/delete")
+async def delete_movie(
+    movie_id: int, 
+):
+    try:
+        # Delete user information
+        delete_movie = await delete_movie_data(
+            movie_id=movie_id,
+        )
+        if delete_movie:
+            return {"message": "Movie information deleted successfully", "movie": delete_movie}
+        else:
+            raise HTTPException(status_code=404, detail="Movie not found")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")

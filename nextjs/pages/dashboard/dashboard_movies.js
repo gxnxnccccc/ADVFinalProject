@@ -139,33 +139,54 @@ export default function DashboardMovies() {
         body: formData,
       });
 
+      // setTimeout(() => {
+      //   Location.reload
+      // }, 10000);  // 10000 milliseconds = 10 seconds
+      if (!response.ok){
+        throw new Error(response.status)
+      }
       await fetchMovies(); // Refresh the movie list
       handleCloseAddDialog(); // Close the add dialog
     } catch (error) {
+      await fetchMovies(); // Refresh the movie list
+      handleCloseAddDialog(); // Close the add dialog
       console.error("Error adding movie:", error);
     }
   };
 
   const handleUpdateSubmit = async () => {
-    if (!selectedMovie) return;
+    if (!selectedMovie) 
+      return;
 
-    const formData = new FormData();
-    formData.append('title', newMovie.title);
-    formData.append('description', newMovie.description);
-    formData.append('duration', newMovie.duration);
-    formData.append('language', newMovie.language);
-    formData.append('release_date', newMovie.release_date);
-    formData.append('genre', newMovie.genre);
-    formData.append('rating', newMovie.rating);
+    // const formData = new FormData();
+    // formData.append('title', newMovie.title);
+    // formData.append('description', newMovie.description);
+    // formData.append('duration', newMovie.duration);
+    // formData.append('language', newMovie.language);
+    // formData.append('release_date', newMovie.release_date);
+    // formData.append('genre', newMovie.genre);
+    // formData.append('rating', newMovie.rating);
 
-    if (newMovie.image) {
-      formData.append('image', newMovie.image); // Only append image if it's new
-    }
+    // if (newMovie.image) {
+    //   formData.append('image', newMovie.image); // Only append image if it's new
+    // }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/movies/${selectedMovie.movie_id}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/movie/update?movie_id=${selectedMovie.movie_id}`, {
         method: 'PUT',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          title: newMovie.title,
+          description: newMovie.description,
+          duration: newMovie.duration,
+          language: newMovie.language,
+          release_date: newMovie.release_date,
+          genre: newMovie.genre,
+          rating: newMovie.rating,
+        }),
       });
 
       await fetchMovies(); // Refresh the movie list
@@ -175,19 +196,51 @@ export default function DashboardMovies() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (confirm("Are you sure you want to delete your account?")) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/movie/delete?movie_id=${selectedMovie.movie_id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+  
+        if (response.ok) {
+          await fetchMovies(); // Refresh the movie list
+          handleCloseUpdateDialog(); // Close the update dialog
+        } else {
+          console.error("Failed to delete movie. Status:", response.status);
+        }
+      } catch (error) {
+        console.error("Error deleting movie:", error);
+      }
+    }
+  };
+  
   return (
     <>
       <DashboardNavigationBar />
     
-      <Box sx={{ mt: 10, px: 2, alignItems: "center" }}>
+      <Box sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #a82d2d, #000000)',
+        color: '#fff',
+        width: '100vw',
+        overflowX: 'hidden',
+        paddingTop: '5rem', // Adjust padding for spacing
+        fontFamily: 'var(--font-family)', // Use global default font
+      }}
+      >
         <Stack alignItems="center">
           <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
           <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={handleOpenAddDialog}>
             Add Movie
           </Button>
         </Stack>
-        <Container sx={{ marginBottom: '4rem' }} maxWidth="md">
-          <Grid container spacing={4} sx={{ mt: 4 }}>
+        <Container sx={{ marginBottom: '10' }} maxWidth="md">
+          <Grid container spacing={4} sx={{ mt: 4 }} height={0}>
             {movies.map((movie) => (
               <Grid item xs={12} sm={6} md={4} key={movie.movie_id}>
                 <Card sx={{ backgroundColor: '#333', color: '#ffffff' }}>
@@ -244,8 +297,8 @@ export default function DashboardMovies() {
             <TextField margin="dense" label="Release Date" type="date" fullWidth name="release_date" value={newMovie.release_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
             <TextField margin="dense" label="Genre" type="text" fullWidth name="genre" value={newMovie.genre} onChange={handleChange} />
             <TextField margin="dense" label="Rating" type="number" fullWidth name="rating" value={newMovie.rating} onChange={handleChange} inputProps={{ step: "0.1", min: "0", max: "10" }} />
-            <TextField margin="dense" label="Image" type="file" fullWidth accept="image/*" onChange={handleFileChange} InputLabelProps={{ shrink: true }} />
-            {loading && <p>Processing...</p>}
+            {/* <TextField margin="dense" label="Image" type="file" fullWidth accept="image/*" onChange={handleFileChange} InputLabelProps={{ shrink: true }} />
+            {loading && <p>Processing...</p>} */}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseUpdateDialog} color="secondary">Cancel</Button>

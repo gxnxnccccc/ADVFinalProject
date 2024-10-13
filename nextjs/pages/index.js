@@ -26,7 +26,8 @@ const IndexPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100vh', // or 'auto'
+        height: '100%',
         background: 'linear-gradient(180deg, #a82d2d, #000000)',
         color: '#fff',
         width: '100vw',

@@ -29,15 +29,13 @@ const EditProfile = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/user/update`, {
-        method: 'POST',
+      const response = await fetch(`http://127.0.0.1:8000/api/user/update?user_id=${localStorage.getItem('user_id')}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          user_id: 1,
-          username: "haha",
           email: newEmail,
           gender: newGender,
           phone_number: newPhoneNumber,

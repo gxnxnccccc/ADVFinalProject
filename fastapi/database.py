@@ -197,7 +197,7 @@ async def get_movie_by_movie_id(movie_id: int):
     values = {"movie_id": movie_id}
     return await database.fetch_one(query=query, values=values)
 
-async def update_movie_data(movie_id: int, title: str, description: Optional[str], duration: Optional[str], language: Optional[str], release_date: Optional[str], genre: Optional[str], rating: Optional[str], image: Optional[bytes]):
+async def update_movie_data(movie_id: int, title: str, description: Optional[str], duration: Optional[str], language: Optional[str], release_date: Optional[str], genre: Optional[str], rating: Optional[str]):
     values = {}
     if title:
         values["title"] = title
@@ -213,8 +213,8 @@ async def update_movie_data(movie_id: int, title: str, description: Optional[str
         values["genre"] = genre
     if rating:
         values["rating"] = rating
-    if image:
-        values["image"] = image
+    # if image:
+    #     values["image"] = image
 
     # Build the SET part of the query dynamically based on the fields provided
     set_clause = ", ".join([f"{key} = :{key}" for key in values])
@@ -223,8 +223,18 @@ async def update_movie_data(movie_id: int, title: str, description: Optional[str
     UPDATE movies
     SET {set_clause}
     WHERE movie_id = :movie_id
-    RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
+    RETURNING movie_id, title, description, duration, language, release_date, genre, rating
     """
     values["movie_id"] = movie_id
 
     return await database.fetch_one(query=query, values=values)
+
+async def delete_movie_data(movie_id: int):
+    values = {}
+    query = """
+    DELETE FROM movies 
+    WHERE movie_id = :movie_id
+    """
+    values["movie_id"] = movie_id
+    
+    return await database.execute(query=query, values=values)
