@@ -504,18 +504,12 @@ async def update_movie(
         raise HTTPException(status_code=500, detail=f"Error deleting user: {str(e)}")
     
 @router.delete("/movie/delete")
-async def delete_movie(
-    movie_id: int, 
-):
+async def delete_movie(movie_id: int):
     try:
         # Delete user information
-        delete_movie = await delete_movie_data(
-            movie_id=movie_id,
-        )
-        if delete_movie:
-            return {"message": "Movie information deleted successfully", "movie": delete_movie}
-        else:
-            raise HTTPException(status_code=404, detail="Movie not found")
+        await delete_movie_data(movie_id=movie_id)
+
+        return {"message": "Movie Delete Successfully!", "movie_id": movie_id}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")

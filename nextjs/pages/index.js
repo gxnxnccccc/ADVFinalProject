@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Button, Container, Grid, Typography, Card, CardContent, CardMedia, IconButton } from '@mui/material';
 import { Box } from '@mui/system';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
-const movies = [
-  { title: 'Deadpool & Wolverine', releaseDate: '2024-10-10', image: '/images/Deadpool_Wolverine.jpg' },
-  { title: 'Fly Me To The Moon', releaseDate: '2024-10-15', image: '/images/flymetothemoon.jpg' },
-  { title: 'Transformer ONE', releaseDate: '2024-10-20', image: '/images/TransformerONE.jpg' },
-];
+// const movies = [
+//   { title: 'Deadpool & Wolverine', releaseDate: '2024-10-10', image: '/images/Deadpool_Wolverine.jpg' },
+//   { title: 'Fly Me To The Moon', releaseDate: '2024-10-15', image: '/images/flymetothemoon.jpg' },
+//   { title: 'Transformer ONE', releaseDate: '2024-10-20', image: '/images/TransformerONE.jpg' },
+// ];
 
 const showtimes = [
   { title: 'Inside Out', time: '12:00 PM', location: 'Cinema 1', seats: 'Available' },
   { title: 'Bad Boys', time: '2:30 PM', location: 'Cinema 2', seats: 'Few Left' },
 ];
 
+
+
 const IndexPage = () => {
+  const [movies, setMovies] = useState([]);
   const [favorites, setFavorites] = useState(new Array(movies.length).fill(false));
 
-  const handleFavoriteClick = (index) => {
+useEffect(() => {
+  fetchMovies();
+}, []); 
+
+  const fetchMovies = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/movies', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Error fetching movies");
+      }
+  
+      const data = await response.json();
+      setMovies(data.movies);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    }
+  }; 
+
+  const handleFavoriteClick = (index) => { //fixxxxx
     const newFavorites = [...favorites];
     newFavorites[index] = !newFavorites[index];
-    setFavorites(newFavorites);
+    setFavorites(newFavorites); // continus from here
   };
 
   return (
@@ -89,7 +116,7 @@ const IndexPage = () => {
                 <CardMedia
                   component="img"
                   height="350"
-                  image={movie.image}
+                  image={`data:image/jpg;base64,${movie.image_base64}`}
                   alt={movie.title}
                 />
                 <CardContent>
@@ -97,7 +124,7 @@ const IndexPage = () => {
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
-                      onClick={() => handleFavoriteClick(index)}
+                      onClick={() => handleFavoriteClick(index)} // continue
                       sx={{
                         color: favorites[index] ? 'pink' : 'gray',
                       }}

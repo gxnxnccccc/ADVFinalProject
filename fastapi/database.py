@@ -230,11 +230,12 @@ async def update_movie_data(movie_id: int, title: str, description: Optional[str
     return await database.fetch_one(query=query, values=values)
 
 async def delete_movie_data(movie_id: int):
-    values = {}
     query = """
     DELETE FROM movies 
     WHERE movie_id = :movie_id
     """
-    values["movie_id"] = movie_id
-    
+    values = {"movie_id": movie_id}
+
     return await database.execute(query=query, values=values)
+
+# async def watchlists()

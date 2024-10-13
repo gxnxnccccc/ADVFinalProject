@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia, Stack, Container } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
+import { set } from 'date-fns';
 
 export default function DashboardMovies() {
   const [movies, setMovies] = useState([]);
@@ -196,13 +197,13 @@ export default function DashboardMovies() {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = async (movie) => {
+    // setSelectedMovie(movie);
     if (confirm("Are you sure you want to delete your account?")) {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/movie/delete?movie_id=${selectedMovie.movie_id}`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/movie/delete?movie_id=${movie}`, {
           method: 'DELETE',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
         });
@@ -258,6 +259,9 @@ export default function DashboardMovies() {
                     <Typography variant="body2">{`Rating: ${movie.rating}`}</Typography>
                     <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={() => handleOpenUpdateDialog(movie)}>
                       Update Movie
+                    </Button>
+                    <Button variant="contained" color="error" style={{ zIndex: 10, marginLeft: 10 }} onClick={() => handleDeleteAccount(movie.movie_id)}>
+                      DELETE
                     </Button>
                   </CardContent>
                 </Card>
