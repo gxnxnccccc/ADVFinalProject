@@ -69,13 +69,14 @@ const MovieListPage = () => {
                   <Button
                     variant="contained"
                     fullWidth
+                    onClick={() => router.push(`/booking?title=${encodeURIComponent(movie.title)}`)} // Navigate to booking page with movie title
                     sx={{
                       marginTop: 2,
-                      backgroundColor: '#000000', // Button fully filled with black
-                      color: '#ffffff',           // Ensure the text color remains white
+                      backgroundColor: '#000000',
+                      color: '#ffffff',
                       fontFamily: 'Proelium',
                       '&:hover': {
-                        backgroundColor: '#333333', // Slightly lighter on hover
+                        backgroundColor: '#333333',
                       },
                     }}
                   >

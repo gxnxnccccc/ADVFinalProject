@@ -38,6 +38,7 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@types/tesseract.js": "^2.0.0",
     "nodemon": "^3.1.7"
   }
 }

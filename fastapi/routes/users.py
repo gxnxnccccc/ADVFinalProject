@@ -227,12 +227,14 @@ async def current_database():
 @router.post("/user/update")
 async def update_user(
     user_id: int,
+    # username: str,
     update_data: UserUpdateRequest
 ):
     try:
         # Update user information
         updated_user = await update_user_data(
             user_id=user_id,
+            # username=username,
             email=update_data.email,
             gender=update_data.gender,
             phone_number=update_data.phone_number

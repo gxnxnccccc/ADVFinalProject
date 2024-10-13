@@ -110,6 +110,7 @@ const IndexPage = () => {
                   <Button
                     variant="contained"
                     fullWidth
+                    onClick={() => router.push(`/booking?title=${encodeURIComponent(movie.title)}`)} // Navigate to booking page with movie title
                     sx={{
                       marginTop: 2,
                       backgroundColor: '#000000',

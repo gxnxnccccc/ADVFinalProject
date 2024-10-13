@@ -36,12 +36,14 @@ const EditProfile = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
+          user_id: 1,
+          username: "haha",
           email: newEmail,
           gender: newGender,
           phone_number: newPhoneNumber,
         }),
       });
-
+      console.log(response);
       if (response.ok) {
         const updatedData = await response.json();
         console.log("User data updated successfully:", updatedData);
