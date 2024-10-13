@@ -35,7 +35,7 @@ const MovieListPage = () => {
       }}
     >
       {/* Movie List Section */}
-      <Container sx={{ marginTop: '3rem', marginBottom: '4rem' }} maxWidth="md">
+      <Container sx={{ marginTop: '0rem', marginBottom: '4rem' }} maxWidth="md">
         <Typography variant="h4" gutterBottom sx={{ fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
           Movie List
         </Typography>

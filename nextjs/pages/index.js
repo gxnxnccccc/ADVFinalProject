@@ -35,7 +35,7 @@ const IndexPage = () => {
       }}
     >
       {/* Header Section */}
-      <AppBar position="static" sx={{ background: 'transparent', width: '100%' }}>
+      {/* <AppBar position="static" sx={{ background: 'transparent', width: '100%' }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1, fontFamily: 'Proelium' }}>
             Movie Ticket Booking
@@ -48,10 +48,10 @@ const IndexPage = () => {
             <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Login</Button>
           </Box>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
 
-      {/* Hero Section */}
-      <Box
+      {/* Hero Section */} 
+      {/* <Box
         sx={{
           // backgroundImage: `url('/images/hero.jpg')`,
           backgroundSize: 'cover',
@@ -74,10 +74,10 @@ const IndexPage = () => {
             Check Showtimes
           </Button>
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Featured Movies Section */}
-      <Container sx={{ marginBottom: '4rem' }} maxWidth="md">
+      <Container sx={{ marginTop: '20rem', marginBottom: '4rem' }} maxWidth="md">
         <Typography variant="h4" gutterBottom sx={{ fontFamily: 'Proelium', marginBottom: '2rem' }}>
           Now Showing
         </Typography>

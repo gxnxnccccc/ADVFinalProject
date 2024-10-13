@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle, Card, CardContent, CardMedia, Stack, Container } from '@mui/material';
 import DashboardNavigationBar from '../../components/DashboardNavigationBar';
 import Tesseract from 'tesseract.js';
-// import { StackOrder } from '@mui/x-charts/internals/stackSeries';
-// import { CenterFocusStrong } from '@mui/icons-material';
 
 export default function DashboardMovies() {
   const [movies, setMovies] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [openAddDialog, setOpenAddDialog] = useState(false); // Separate state for Add Movie dialog
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false); // Separate state for Update Movie dialog
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null); // To store the movie to update
   const [newMovie, setNewMovie] = useState({
     title: '',
     description: '',
@@ -66,12 +66,29 @@ export default function DashboardMovies() {
     }
   };
 
-  const handleOpen = () => {
-    setOpen(true);
+  // Handle opening and closing of Add Movie dialog
+  const handleOpenAddDialog = () => {
+    setOpenAddDialog(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseAddDialog = () => {
+    setOpenAddDialog(false);
+    resetNewMovie(); // Reset form values
+  };
+
+  // Handle opening and closing of Update Movie dialog
+  const handleOpenUpdateDialog = (movie) => {
+    setSelectedMovie(movie);
+    setNewMovie(movie); // Populate the form with the selected movie's data
+    setOpenUpdateDialog(true);
+  };
+
+  const handleCloseUpdateDialog = () => {
+    setOpenUpdateDialog(false);
+    resetNewMovie(); // Reset form values
+  };
+
+  const resetNewMovie = () => {
     setNewMovie({
       title: '',
       description: '',
@@ -80,7 +97,7 @@ export default function DashboardMovies() {
       release_date: '',
       genre: '',
       rating: '',
-      image: null, // Reset image to null
+      image: null,
     });
     setText(''); // Reset extracted text
   };
@@ -122,17 +139,39 @@ export default function DashboardMovies() {
         body: formData,
       });
 
-      // if (!response.ok) {
-      //   const errorResponse = await response.json();
-      //   console.error("Error adding movie:", errorResponse);
-      //   alert(`Error: ${errorResponse.detail}`);
-      //   return;
-      // }
-
       await fetchMovies(); // Refresh the movie list
-      handleClose(); // Close the dialog
+      handleCloseAddDialog(); // Close the add dialog
     } catch (error) {
       console.error("Error adding movie:", error);
+    }
+  };
+
+  const handleUpdateSubmit = async () => {
+    if (!selectedMovie) return;
+
+    const formData = new FormData();
+    formData.append('title', newMovie.title);
+    formData.append('description', newMovie.description);
+    formData.append('duration', newMovie.duration);
+    formData.append('language', newMovie.language);
+    formData.append('release_date', newMovie.release_date);
+    formData.append('genre', newMovie.genre);
+    formData.append('rating', newMovie.rating);
+
+    if (newMovie.image) {
+      formData.append('image', newMovie.image); // Only append image if it's new
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/movies/${selectedMovie.movie_id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      await fetchMovies(); // Refresh the movie list
+      handleCloseUpdateDialog(); // Close the update dialog
+    } catch (error) {
+      console.error("Error updating movie:", error);
     }
   };
 
@@ -141,229 +180,77 @@ export default function DashboardMovies() {
       <DashboardNavigationBar />
       
       <Box container spacing={4} sx={{ mt: 4 }}>...</Box>
-      <Box sx={{ mt: 700, px: 2, alignItems: "center" }}>
+      <Box sx={{ mt: 10, px: 2, alignItems: "center" }}>
         <Stack alignItems="center">
-        <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
-          <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
+          <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
+          <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={handleOpenAddDialog}>
             Add Movie
           </Button>
         </Stack>
         <Container sx={{ marginBottom: '4rem' }} maxWidth="md">
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {movies.map((movie) => (
-            <Grid item xs={12} sm={6} md={4} key={movie.movie_id}>
-              <Card sx={{ backgroundColor: '#333', color: '#ffffff' }}>
-                <CardMedia
-                  component="img"
-                  style={{ width: '100%', height: 'auto' }}
-                  
-                  image={`data:image/jpg;base64,${movie.image_base64}`}
-                  alt={movie.title}
-                />
-                <CardContent>
-                  <Typography variant="h6">{movie.title}</Typography>
-                  <Typography variant="body2" sx={{ mb: 1 }}>{movie.genre}</Typography>
-                  <Typography variant="body2" sx={{ mb: 1 }}>{movie.language}</Typography>
-                  <Typography variant="body2">{`Duration: ${movie.duration} mins`}</Typography>
-                  <Typography variant="body2">{`Rating: ${movie.rating}`}</Typography>
-                  <Button variant="contained" color="primary" style={{ position: 'center', zIndex: 10 }} onClick={handleOpen}>
-                  update movie
-                  </Button>
-                  
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+          <Grid container spacing={4} sx={{ mt: 4 }}>
+            {movies.map((movie) => (
+              <Grid item xs={12} sm={6} md={4} key={movie.movie_id}>
+                <Card sx={{ backgroundColor: '#333', color: '#ffffff' }}>
+                  <CardMedia
+                    component="img"
+                    style={{ width: '100%', height: 'auto' }}
+                    image={`data:image/jpg;base64,${movie.image_base64}`}
+                    alt={movie.title}
+                  />
+                  <CardContent>
+                    <Typography variant="h6">{movie.title}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{movie.genre}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{movie.language}</Typography>
+                    <Typography variant="body2">{`Duration: ${movie.duration} mins`}</Typography>
+                    <Typography variant="body2">{`Rating: ${movie.rating}`}</Typography>
+                    <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={() => handleOpenUpdateDialog(movie)}>
+                      Update Movie
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
+
         {/* Add Movie Dialog */}
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={openAddDialog} onClose={handleCloseAddDialog}>
           <DialogTitle>Add New Movie</DialogTitle>
           <DialogContent>
-            <TextField
-              margin="dense"
-              label="Title"
-              type="text"
-              fullWidth
-              name="title"
-              value={newMovie.title}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Description"
-              type="text"
-              fullWidth
-              name="description"
-              value={newMovie.description}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Duration"
-              type="number"
-              fullWidth
-              name="duration"
-              value={newMovie.duration}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Language"
-              type="text"
-              fullWidth
-              name="language"
-              value={newMovie.language}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Release Date"
-              type="date"
-              fullWidth
-              name="release_date"
-              value={newMovie.release_date}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              margin="dense"
-              label="Genre"
-              type="text"
-              fullWidth
-              name="genre"
-              value={newMovie.genre}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Rating"
-              type="number"
-              fullWidth
-              name="rating"
-              value={newMovie.rating}
-              onChange={handleChange}
-              inputProps={{ step: "0.1", min: "0", max: "10" }}
-            />
-            <div>
-              <TextField
-                margin="dense"
-                label="Image"
-                type="file"
-                fullWidth
-                accept="image/*"
-                onChange={handleFileChange}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-              {loading && <p>Processing...</p>}
-              {/* {text && (
-                <div>
-                  <h2>Extracted Text:</h2>
-                  <p>{text}</p>
-                </div>
-              )} */}
-            </div>
+            <TextField margin="dense" label="Title" type="text" fullWidth name="title" value={newMovie.title} onChange={handleChange} />
+            <TextField margin="dense" label="Description" type="text" fullWidth name="description" value={newMovie.description} onChange={handleChange} />
+            <TextField margin="dense" label="Duration" type="number" fullWidth name="duration" value={newMovie.duration} onChange={handleChange} />
+            <TextField margin="dense" label="Language" type="text" fullWidth name="language" value={newMovie.language} onChange={handleChange} />
+            <TextField margin="dense" label="Release Date" type="date" fullWidth name="release_date" value={newMovie.release_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <TextField margin="dense" label="Genre" type="text" fullWidth name="genre" value={newMovie.genre} onChange={handleChange} />
+            <TextField margin="dense" label="Rating" type="number" fullWidth name="rating" value={newMovie.rating} onChange={handleChange} inputProps={{ step: "0.1", min: "0", max: "10" }} />
+            <TextField margin="dense" label="Image" type="file" fullWidth accept="image/*" onChange={handleFileChange} InputLabelProps={{ shrink: true }} />
+            {loading && <p>Processing...</p>}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="secondary">Cancel</Button>
+            <Button onClick={handleCloseAddDialog} color="secondary">Cancel</Button>
             <Button onClick={MoviehandleSubmit} color="primary">Add</Button>
           </DialogActions>
         </Dialog>
 
-        <Dialog open={open} onClose={handleClose}>
+        {/* Update Movie Dialog */}
+        <Dialog open={openUpdateDialog} onClose={handleCloseUpdateDialog}>
           <DialogTitle>Update Movie</DialogTitle>
           <DialogContent>
-            <TextField
-              margin="dense"
-              label="Title"
-              type="text"
-              fullWidth
-              name="title"
-              value={newMovie.title}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Description"
-              type="text"
-              fullWidth
-              name="description"
-              value={newMovie.description}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Duration"
-              type="number"
-              fullWidth
-              name="duration"
-              value={newMovie.duration}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Language"
-              type="text"
-              fullWidth
-              name="language"
-              value={newMovie.language}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Release Date"
-              type="date"
-              fullWidth
-              name="release_date"
-              value={newMovie.release_date}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              margin="dense"
-              label="Genre"
-              type="text"
-              fullWidth
-              name="genre"
-              value={newMovie.genre}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="dense"
-              label="Rating"
-              type="number"
-              fullWidth
-              name="rating"
-              value={newMovie.rating}
-              onChange={handleChange}
-              inputProps={{ step: "0.1", min: "0", max: "10" }}
-            />
-            <div>
-              <TextField
-                margin="dense"
-                label="Image"
-                type="file"
-                fullWidth
-                accept="image/*"
-                onChange={handleFileChange}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-              {loading && <p>Processing...</p>}
-              {/* {text && (
-                <div>
-                  <h2>Extracted Text:</h2>
-                  <p>{text}</p>
-                </div>
-              )} */}
-            </div>
+            <TextField margin="dense" label="Title" type="text" fullWidth name="title" value={newMovie.title} onChange={handleChange} />
+            <TextField margin="dense" label="Description" type="text" fullWidth name="description" value={newMovie.description} onChange={handleChange} />
+            <TextField margin="dense" label="Duration" type="number" fullWidth name="duration" value={newMovie.duration} onChange={handleChange} />
+            <TextField margin="dense" label="Language" type="text" fullWidth name="language" value={newMovie.language} onChange={handleChange} />
+            <TextField margin="dense" label="Release Date" type="date" fullWidth name="release_date" value={newMovie.release_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <TextField margin="dense" label="Genre" type="text" fullWidth name="genre" value={newMovie.genre} onChange={handleChange} />
+            <TextField margin="dense" label="Rating" type="number" fullWidth name="rating" value={newMovie.rating} onChange={handleChange} inputProps={{ step: "0.1", min: "0", max: "10" }} />
+            <TextField margin="dense" label="Image" type="file" fullWidth accept="image/*" onChange={handleFileChange} InputLabelProps={{ shrink: true }} />
+            {loading && <p>Processing...</p>}
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="secondary">Cancel</Button>
-            <Button onClick={MoviehandleSubmit} color="primary">Update</Button>
+            <Button onClick={handleCloseUpdateDialog} color="secondary">Cancel</Button>
+            <Button onClick={handleUpdateSubmit} color="primary">Update</Button>
           </DialogActions>
         </Dialog>
       </Box>

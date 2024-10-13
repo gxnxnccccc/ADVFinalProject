@@ -4,16 +4,16 @@ import { Box } from '@mui/system';
 import axios from 'axios'; // Assuming axios is used to fetch data from the backend
 
 const FavoritesPage = () => {
-  const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const [watchlistMovies, setWatchlistMovies] = useState([]);
 
-  // Fetch favorite movies from the database
+  // Fetch watchlist movies from the database
   useEffect(() => {
-    axios.get('/api/favorites') // Replace with your backend API endpoint
+    axios.get('/api/watchlists') // Replace with your backend API endpoint
       .then((response) => {
         setFavoriteMovies(response.data);
       })
       .catch((error) => {
-        console.error('Error fetching favorite movies:', error);
+        console.error('Error fetching watchlist movies:', error);
       });
   }, []);
 
@@ -29,36 +29,20 @@ const FavoritesPage = () => {
         fontFamily: 'var(--font-family)',
       }}
     >
-      {/* Header Section
-      <AppBar position="static" sx={{ background: 'transparent', width: '100%' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontFamily: 'Proelium' }}>
-            Movie Ticket Booking
-          </Typography>
-          <Box>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Home</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Movies</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Showtimes</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Contact</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Login</Button>
-          </Box>
-        </Toolbar>
-      </AppBar> */}
-
       {/* Favorite Movies Section */}
       <Container sx={{ marginTop: '3rem', marginBottom: '4rem' }} maxWidth="md">
         <Typography variant="h4" gutterBottom sx={{ fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
-          Favorite Movie List
+          WATCHLIST MOVIES
         </Typography>
         <Grid container spacing={4}>
-          {favoriteMovies.length > 0 ? (
-            favoriteMovies.map((movie, index) => (
+          {watchlistMovies.length > 0 ? (
+            watchlistMovies.map((movie, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.movie_title}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Proelium' }}>
-                      Favorited At: {new Date(movie.created_at).toLocaleDateString()}
+                      Watchlist At: {new Date(movie.created_at).toLocaleDateString()}
                     </Typography>
                     <Button
                       variant="contained"
@@ -81,7 +65,7 @@ const FavoritesPage = () => {
             ))
           ) : (
             <Typography variant="h6" sx={{ textAlign: 'center', width: '100%', fontFamily: 'Proelium' }}>
-              No favorite movies yet.
+              No watchlist movies yet.
             </Typography>
           )}
         </Grid>

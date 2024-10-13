@@ -65,8 +65,9 @@ const NavigationLayout = ({ children }) => {
           </Typography>
 
           <NavigationLink href="/movies" label="MOVIES" font='Proelium' />
-          <NavigationLink href="/favorites" label="FAVORITES" font='Proelium' />
-          {/* <NavigationLink href="/wishlists" label="WISHLISTS" font='Proelium' /> */}
+          <NavigationLink href="/watchlists" label="WATCHLISTS" font='Proelium' />
+          <NavigationLink href="/booking" label="BOOKING" font='Proelium' />
+          <NavigationLink href="/histories" label="HISTORIES" font='Proelium' />
           {isAdmin && <NavigationLink href="/dashboard/dashboard_index" label="DASHBOARD" font='Proelium' />}
 
           <Box sx={{ flexGrow: 1 }} />

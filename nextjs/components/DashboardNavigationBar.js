@@ -17,7 +17,7 @@ const DashboardNavigationBar = () => {
               variant="h6"
               sx={{
                 fontWeight: 500,
-                color: "#ffffff",     // White color
+                color: "#ffffff",     // White color 
                 padding: "0 15px",
                 fontFamily: "Proelium", // Apply Proelium font
                 cursor: "pointer",
