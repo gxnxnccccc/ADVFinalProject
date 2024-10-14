@@ -15,7 +15,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 
 const MovieListPage = () => {
   const [allMovies, setMovies] = useState([]);
-  const [favorites, setFavorites] = useState(new Array(allMovies.length).fill(false));
+  const [Watchlist, setWatchlist] = useState(new Array(allMovies.length).fill(false));
 
 useEffect(() => {
   fetchMovies();
@@ -38,18 +38,18 @@ useEffect(() => {
         console.log(data.movies); // Log the movie data to check the structure
         setMovies(data.movies);
 
-        // Set favorites after movies are fetched
-        setFavorites(new Array(data.movies.length).fill(false));
+        // Set Watchlist after movies are fetched
+        setWatchlist(new Array(data.movies.length).fill(false));
         console.log(allMovies); // Check state after setting it
       } catch (error) {
         console.error("Error fetching movies:", error);
       }
     }; 
   
-    const handleFavoriteClick = (index) => { //fixxxxx
-      const newFavorites = [...favorites];
-      newFavorites[index] = !newFavorites[index];
-      setFavorites(newFavorites); // continus from here
+    const handleWatchlistClick = (index) => { // FIX
+      const newWatchlist = [...Watchlist];
+      newWatchlist[index] = !newWatchlist[index];
+      setWatchlist(newWatchlist);
     };
 
   return (
@@ -88,9 +88,9 @@ useEffect(() => {
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
-                      onClick={() => handleFavoriteClick(index)}
+                      onClick={() => handleWatchlistClick(index)}
                       sx={{
-                        color: favorites[index] ? 'pink' : 'gray', // Toggle color based on state
+                        color: Watchlist[index] ? 'pink' : 'gray', // Toggle color based on state
                       }}
                     >
                       <FavoriteIcon />

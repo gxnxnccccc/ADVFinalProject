@@ -21,8 +21,6 @@ import asyncio
 import psycopg2
 import io
 
-# from .schemas import User  # Assuming you have a User schema or similar
-
 SECRET = "your-secret-key"  # Use a secure key here
 manager = LoginManager(SECRET, token_url='/api/user/login')
 
@@ -284,6 +282,168 @@ async def image_to_text(image_file: UploadFile) -> str:
     except Exception as e:
         print(f"An error occurred: {e}")
         return ""
+    
+# @router.post("/movies/add")
+# async def add_movie(movie: MovieCreateRequest):
+#     try:
+#         # Validate rating value
+#         if movie.rating < 0 or movie.rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Validate image URL format
+#         if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+#             raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
+
+#         text_image = await image_to_text(movie.image)
+#         print(text_image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=movie.title,
+#             description=movie.description,
+#             duration=movie.duration,
+#             language=movie.language,
+#             release_date=movie.release_date,
+#             genre=movie.genre,
+#             rating=movie.rating,
+#             image=psycopg2.binary(movie.image)
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
+# @router.post("/movies/add")
+# async def add_movie(
+#     title: str,
+#     description: str,
+#     duration: int,
+#     language: str,
+#     release_date: str,
+#     genre: str,
+#     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1),
+#     image: UploadFile = File(...)
+# ):
+#     try:
+#         # Validate rating value
+#         if rating < 0 or rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Read the image file
+#         image_data = await image.read()
+#         text_image = await image_to_text(image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=image_data  # Store the binary data
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+
+# @router.post("/movies/add")
+# async def add_movie(
+
+#     movie: MovieCreateRequest,
+
+#     title: str = Form(...),
+#     description: str = Form(...),
+#     duration: int = Form(...),
+#     language: str = Form(...),
+#     release_date: str = Form(...),
+#     genre: str = Form(...),
+#     rating: float = Form(...),
+#     image: UploadFile = File(...)
+# ):
+#     print("Received data:", movie)
+#     try:
+#         # Validate rating value
+#         if rating < 0 or rating > 10:
+#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
+
+#         # Validate the image file type
+#         if not image.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+#             raise HTTPException(status_code=400, detail="Invalid image file. Must be an image file (e.g., .jpg, .png).")
+
+#         # Read the image file content as binary
+#         file_content = await image.read()
+
+#         # If you have a function `image_to_text`, you need to pass the binary content, not the URL
+#         text_image = await image_to_text(file_content)
+#         print(text_image)
+
+#         if not text_image:
+#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
+
+#         # Call the insert_movies function to add the movie to the database
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=psycopg2.Binary(file_content)  # Store binary data in the database
+#         )
+
+#         # Return the newly created movie data
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
+    
+# @router.post("/movies/add")
+# async def add_movie(
+#     title: str = Form(...),
+#     description: str = Form(...),
+#     duration: int = Form(...),
+#     language: str = Form(...),
+#     release_date: str = Form(...),
+#     genre: str = Form(...),
+#     rating: float = Form(...),
+#     image: UploadFile = File(...)
+# ):
+#     try:
+#         # Read the file content as binary
+#         file_content = await image.read()
+        
+#         # Call the insert_movies function (ensure this function is working as expected)
+#         new_movie = await insert_movies(
+#             title=title,
+#             description=description,
+#             duration=duration,
+#             language=language,
+#             release_date=release_date,
+#             genre=genre,
+#             rating=rating,
+#             image=file_content  # Storing as binary data
+#         )
+        
+#         return {"message": "Movie created successfully", "movie": new_movie}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
 
 @router.post("/movies/add")
 async def add_movie(
@@ -350,38 +510,77 @@ async def delete_movie(movie_id: int):
         # Delete user information
         await delete_movie_data(movie_id=movie_id)
 
-        return {"message": "Movie Delete Successfully!", "movie_id": movie_id} # or movie
+        return {"message": "Movie Delete Successfully!", "movie_id": movie_id}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
-
+    
 @router.get("/watchlist")
-async def fetch_watchlist():
+async def fetch_watchlist(
+    user_id: int,
+):
     try:
         print(1)
-        watchlist = await get_watchlist_data()
-        print(watchlist)
+        watchlist = await get_watchlist_data(
+            user_id=user_id
+        )
+
         return {"message": "Watchlist fetched successfully", "watchlist": watchlist}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching watchlists: {str(e)}")
     
 @router.post("/watchlist/add")
-async def add_watchlist():
+async def add_watchlist(
+    user_id: int,
+    movie_id: int
+):
     try:
-        # Call the insert_movies function
-        new_watchlist = await insert_watchlist()
+        # Call the insert_watchlist function
+        new_watchlist = await insert_watchlist(
+            user_id=user_id,
+            movie_id=movie_id
+        )
 
         return {"message": "Movie added to watchlist successfully", "watchlist": new_watchlist}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id or movie_id. They must be integers.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating watchlist movie: {str(e)}")
 
+# @router.delete("/watchlist/delete")
+# async def delete_watchlist(
+#     user_id: int,
+#     movie_id: int
+# ):
+#     try:
+#         # Delete the watchlist entry by user_id and movie_id
+#         result = await delete_watchlist_data(user_id=user_id, movie_id=movie_id)
+
+#         if result:
+#             return {"message": "Movie deleted successfully!", "watchlist_id": result}
+#         else:
+#             raise HTTPException(status_code=404, detail="Watchlist entry not found.") # เข้า function นี้ แต่ลบได้จิง
+    
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid user_id or movie_id. They must be integers.")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
+
 @router.delete("/watchlist/delete")
-async def delete_watchlist(watchlist_id: int):
+async def delete_watchlist(
+    user_id: int,
+    movie_id: int
+):
     try:
-        # Delete user information
-        await delete_watchlist_data(watchlist_id=watchlist_id)
+        # Delete the watchlist entry by user_id and movie_id
+        watchlist_id = await delete_watchlist_data(user_id=user_id, movie_id=movie_id)
 
-        return {"message": "Movie Delete Successfully!", "watchlist_id": watchlist_id} # or watchlist
-
+        if watchlist_id:
+            return {"message": "Movie deleted successfully!", "watchlist_id": watchlist_id}
+        else:
+            raise HTTPException(status_code=404, detail="Watchlist entry not found.")
+    
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id or movie_id. They must be integers.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")

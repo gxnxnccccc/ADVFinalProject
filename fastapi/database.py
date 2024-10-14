@@ -208,25 +208,52 @@ async def insert_watchlist(user_id: int, movie_id: int):
     query = """
         INSERT INTO watchlists (user_id, movie_id)
         VALUES (:user_id, :movie_id)
+        RETURNING user_id, movie_id
     """
-    values={"user_id": user_id, "movie_id": movie_id}
+    values = {"user_id": user_id, "movie_id": movie_id}
 
-    return await database.execute(query=query)
+    # This will execute the query and return the new watchlist details
+    return await database.fetch_one(query=query, values=values)
 
 async def get_watchlist_data(user_id: int):
+    # print(f"Fetching watchlist for user_id: {user_id}")  # Logging user_id for debugging
     query = """
         SELECT watchlist_id, movie_id 
         FROM watchlists 
         WHERE user_id = :user_id
     """
-    values={"user_id": user_id}
-    
-    return await database.fetch_all(query=query )
+    values = {"user_id": user_id}
+    return await database.fetch_all(query=query, values=values)
 
-async def delete_watchlist_data(watchlist_id: int):
-    query = """
-        DELETE FROM watchlists 
-        WHERE watchlist_id = :watchlist_id
+
+# async def delete_watchlist_data(user_id: int, movie_id: int):
+#     # Perform the deletion and return the number of rows affected
+#     query = """
+#         DELETE FROM watchlists 
+#         WHERE user_id = :user_id AND movie_id = :movie_id
+#     """
+#     values = {"user_id": user_id, "movie_id": movie_id}
+#     result = await database.execute(query=query, values=values)
+    
+#     return result  # This will return the number of rows affected (1 if deleted, 0 if nothing found)
+
+async def delete_watchlist_data(user_id: int, movie_id: int):
+    # First, check if the entry exists
+    check_query = """
+        SELECT watchlist_id FROM watchlists
+        WHERE user_id = :user_id AND movie_id = :movie_id
     """
-    values = {"watchlist_id": watchlist_id}
-    return await database.execute(query=query)
+    values = {"user_id": user_id, "movie_id": movie_id}
+    
+    watchlist_entry = await database.fetch_one(query=check_query, values=values)
+    
+    if watchlist_entry:
+        # If the entry exists, delete it
+        delete_query = """
+            DELETE FROM watchlists 
+            WHERE user_id = :user_id AND movie_id = :movie_id
+        """
+        await database.execute(query=delete_query, values=values)
+        return watchlist_entry['watchlist_id']  # Return the ID of the deleted entry
+    
+    return None  # No entry found to delete

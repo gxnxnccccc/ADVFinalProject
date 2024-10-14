@@ -18,7 +18,7 @@ const showtimes = [
 
 const IndexPage = () => {
   const [movies, setMovies] = useState([]);
-  const [favorites, setFavorites] = useState(new Array(movies.length).fill(false));
+  const [Watchlist, setWatchlist] = useState(new Array(movies.length).fill(false));
 
 useEffect(() => {
   fetchMovies();
@@ -44,10 +44,10 @@ useEffect(() => {
     }
   }; 
 
-  const handleWatchlistsClick = (index) => { //fixxxxx
-    const newFavorites = [...favorites];
-    newFavorites[index] = !newFavorites[index];
-    setFavorites(newFavorites); // continus from here
+  const handleWatchlistClick = (index) => { // Renamed function
+    const newWatchlist = [...Watchlist];
+    newWatchlist[index] = !newWatchlist[index];
+    setWatchlist(newWatchlist);
   };
 
   return (
@@ -82,9 +82,9 @@ useEffect(() => {
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
-                      onClick={() => handleFavoriteClick(index)} // continue
+                      onClick={() => handleWatchlistClick(index)} // continue
                       sx={{
-                        color: favorites[index] ? 'pink' : 'gray',
+                        color: Watchlist[index] ? 'pink' : 'gray',
                       }}
                     >
                       <FavoriteIcon />
