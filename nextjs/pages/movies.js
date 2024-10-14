@@ -1,26 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppBar, Toolbar, Button, Container, Grid, Typography, Card, CardContent, CardMedia, IconButton } from '@mui/material';
 import { Box } from '@mui/system';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
-// Movie data array
-const allMovies = [
-  { title: 'Deadpool & Wolverine', releaseDate: '2024-10-10', image: '/images/Deadpool_Wolverine.jpg' },
-  { title: 'Fly Me To The Moon', releaseDate: '2024-10-15', image: '/images/flymetothemoon.jpg' },
-  { title: 'Transformer ONE', releaseDate: '2024-10-20', image: '/images/TransformerONE.jpg' },
-  { title: 'The Batman', releaseDate: '2024-11-05', image: '/images/thebatman.jpg' },
-  { title: 'Spider-Man: No Way Home', releaseDate: '2024-11-12', image: '/images/spiderman.jpg' },
-  { title: 'Avatar: The Way of Water', releaseDate: '2024-12-15', image: '/images/avatar.jpg' },
-];
+// // Movie data array
+// const allMovies = [
+//   { title: 'Deadpool & Wolverine', releaseDate: '2024-10-10', image: '/images/Deadpool_Wolverine.jpg' },
+//   { title: 'Fly Me To The Moon', releaseDate: '2024-10-15', image: '/images/flymetothemoon.jpg' },
+//   { title: 'Transformer ONE', releaseDate: '2024-10-20', image: '/images/TransformerONE.jpg' },
+//   { title: 'The Batman', releaseDate: '2024-11-05', image: '/images/thebatman.jpg' },
+//   { title: 'Spider-Man: No Way Home', releaseDate: '2024-11-12', image: '/images/spiderman.jpg' },
+//   { title: 'Avatar: The Way of Water', releaseDate: '2024-12-15', image: '/images/avatar.jpg' },
+// ];
 
 const MovieListPage = () => {
+  const [allMovies, setMovies] = useState([]);
   const [favorites, setFavorites] = useState(new Array(allMovies.length).fill(false));
 
-  const handleFavoriteClick = (index) => {
-    const newFavorites = [...favorites];
-    newFavorites[index] = !newFavorites[index]; // Toggle the state
-    setFavorites(newFavorites);
-  };
+useEffect(() => {
+  fetchMovies();
+}, []); 
+  
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/movies', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error("Error fetching movies");
+        }
+    
+        const data = await response.json();
+        console.log(data.movies); // Log the movie data to check the structure
+        setMovies(data.movies);
+
+        // Set favorites after movies are fetched
+        setFavorites(new Array(data.movies.length).fill(false));
+        console.log(allMovies); // Check state after setting it
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    }; 
+  
+    const handleFavoriteClick = (index) => { //fixxxxx
+      const newFavorites = [...favorites];
+      newFavorites[index] = !newFavorites[index];
+      setFavorites(newFavorites); // continus from here
+    };
 
   return (
     <Box
@@ -30,23 +60,27 @@ const MovieListPage = () => {
         color: '#fff',
         width: '100vw',
         overflowX: 'hidden',
-        paddingTop: '40rem', // Adjust padding for spacing
-        fontFamily: 'var(--font-family)', // Use global default font
+        display: 'flex',
+        flexDirection: 'column', // Stack elements vertically
+        justifyContent: 'flex-start', // Align to top
+        alignItems: 'center', // Center horizontally
+        paddingTop: '4rem', // Adjust padding for spacing
+        fontFamily: 'var(--font-family)',
       }}
     >
       {/* Movie List Section */}
       <Container sx={{ marginTop: '0rem', marginBottom: '4rem' }} maxWidth="md">
-        <Typography variant="h4" gutterBottom sx={{ fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
+        <Typography variant="h4" sx={{ paddingTop: '2rem', fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
           Movie List
         </Typography>
-        <Grid container spacing={4}>
+        <Grid container spacing={4} justifyContent="center">
           {allMovies.map((movie, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card>
                 <CardMedia
                   component="img"
                   height="350"
-                  image={movie.image}
+                  image={`data:image/jpg;base64,${movie.image_base64}`}
                   alt={movie.title}
                 />
                 <CardContent>
@@ -63,7 +97,7 @@ const MovieListPage = () => {
                     </IconButton>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Proelium' }}>
-                    Release Date: {movie.releaseDate}
+                    Release Date: {movie.release_date}
                   </Typography>
                   {/* Book Now button styled as requested */}
                   <Button

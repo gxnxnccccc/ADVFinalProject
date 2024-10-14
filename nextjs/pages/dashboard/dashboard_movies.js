@@ -235,16 +235,16 @@ export default function DashboardMovies() {
       }}
       >
         <Stack alignItems="center">
-          <Typography variant="h4" sx={{ color: '#ffffff', mb: 2 }}>Movies</Typography>
-          <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={handleOpenAddDialog}>
+          <Typography variant="h4" sx={{ fontFamily: 'Proelium', color: '#ffffff', mb: 2 }}>Movies</Typography>
+          <Button variant="contained" color="primary" style={{ fontFamily: 'Proelium', zIndex: 10 }} onClick={handleOpenAddDialog}>
             Add Movie
           </Button>
         </Stack>
         <Container sx={{ marginBottom: '10' }} maxWidth="md">
-          <Grid container spacing={4} sx={{ mt: 4 }} height={0}>
+          <Grid container spacing={4} sx={{ fontFamily: 'Proelium', mt: 4 }} height={0}>
             {movies.map((movie) => (
               <Grid item xs={12} sm={6} md={4} key={movie.movie_id}>
-                <Card sx={{ backgroundColor: '#333', color: '#ffffff' }}>
+                <Card sx={{ fontFamily: 'Proelium', backgroundColor: '#333', color: '#ffffff' }}>
                   <CardMedia
                     component="img"
                     style={{ width: '100%', height: 'auto' }}
@@ -252,15 +252,15 @@ export default function DashboardMovies() {
                     alt={movie.title}
                   />
                   <CardContent>
-                    <Typography variant="h6">{movie.title}</Typography>
+                    <Typography variant="h6" sx={{ fontFamily: 'Proelium', mb: 1 }}>{movie.title}</Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>{movie.genre}</Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>{movie.language}</Typography>
-                    <Typography variant="body2">{`Duration: ${movie.duration} mins`}</Typography>
-                    <Typography variant="body2">{`Rating: ${movie.rating}`}</Typography>
-                    <Button variant="contained" color="primary" style={{ zIndex: 10 }} onClick={() => handleOpenUpdateDialog(movie)}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{`Duration: ${movie.duration} mins`}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>{`Rating: ${movie.rating}`}</Typography>
+                    <Button variant="contained" color="primary" style={{ fontFamily: 'Proelium', zIndex: 10 }} onClick={() => handleOpenUpdateDialog(movie)}>
                       Update Movie
                     </Button>
-                    <Button variant="contained" color="error" style={{ zIndex: 10, marginLeft: 10 }} onClick={() => handleDeleteAccount(movie.movie_id)}>
+                    <Button variant="contained" color="error" style={{ fontFamily: 'Proelium', zIndex: 10, marginLeft: 10 }} onClick={() => handleDeleteAccount(movie.movie_id)}>
                       DELETE
                     </Button>
                   </CardContent>

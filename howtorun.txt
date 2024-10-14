@@ -1,0 +1,2 @@
+nextjs - npx next dev
+db, fastapi - docker

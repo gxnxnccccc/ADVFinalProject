@@ -41,3 +41,4 @@ async def check_table_exists(table_name: str):
     if result[0] is None:
         raise HTTPException(status_code=500, detail=f"Table '{table_name}' does not exist")
     print(f"Table '{table_name}' exists in the database.")
+

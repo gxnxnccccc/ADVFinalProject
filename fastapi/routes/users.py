@@ -509,7 +509,7 @@ async def delete_movie(movie_id: int):
         # Delete user information
         await delete_movie_data(movie_id=movie_id)
 
-        return {"message": "Movie Delete Successfully!", "movie_id": movie_id}
+        return {"message": "Movie Delete Successfully!", "movie_id": movie}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")

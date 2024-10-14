@@ -44,7 +44,7 @@ useEffect(() => {
     }
   }; 
 
-  const handleFavoriteClick = (index) => { //fixxxxx
+  const handleWatchlistsClick = (index) => { //fixxxxx
     const newFavorites = [...favorites];
     newFavorites[index] = !newFavorites[index];
     setFavorites(newFavorites); // continus from here
@@ -62,48 +62,6 @@ useEffect(() => {
         fontFamily: 'var(--font-family)', // Use global default font
       }}
     >
-      {/* Header Section */}
-      {/* <AppBar position="static" sx={{ background: 'transparent', width: '100%' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontFamily: 'Proelium' }}>
-            Movie Ticket Booking
-          </Typography>
-          <Box>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Home</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Movies</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Showtimes</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Contact</Button>
-            <Button color="inherit" sx={{ fontFamily: 'Proelium' }}>Login</Button>
-          </Box>
-        </Toolbar>
-      </AppBar> */}
-
-      {/* Hero Section */} 
-      {/* <Box
-        sx={{
-          // backgroundImage: `url('/images/hero.jpg')`,
-          backgroundSize: 'cover',
-          height: '400px',
-          color: '#fff',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          width: '100%',
-          marginBottom: '4rem',
-        }}
-      >
-        <Box>
-          <Typography variant="h3" sx={{ fontFamily: 'Proelium' }}>Book Your Tickets Now!</Typography>
-          <Button variant="contained" sx={{ margin: 2, background: '#a82d2d', fontFamily: 'Proelium' }}>
-            View Movies
-          </Button>
-          <Button variant="contained" sx={{ margin: 2, background: '#000000', fontFamily: 'Proelium' }}>
-            Check Showtimes
-          </Button>
-        </Box>
-      </Box> */}
-
       {/* Featured Movies Section */}
       <Container sx={{ marginTop: '20rem', marginBottom: '4rem' }} maxWidth="md">
         <Typography variant="h4" gutterBottom sx={{ fontFamily: 'Proelium', marginBottom: '2rem' }}>
@@ -133,7 +91,7 @@ useEffect(() => {
                     </IconButton>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Proelium' }}>
-                    Release Date: {movie.releaseDate}
+                    Release Date: {movie.release_date}
                   </Typography>
                   <Button
                     variant="contained"
