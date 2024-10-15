@@ -225,18 +225,6 @@ async def get_watchlist_data(user_id: int):
     values = {"user_id": user_id}
     return await database.fetch_all(query=query, values=values)
 
-
-# async def delete_watchlist_data(user_id: int, movie_id: int):
-#     # Perform the deletion and return the number of rows affected
-#     query = """
-#         DELETE FROM watchlists 
-#         WHERE user_id = :user_id AND movie_id = :movie_id
-#     """
-#     values = {"user_id": user_id, "movie_id": movie_id}
-#     result = await database.execute(query=query, values=values)
-    
-#     return result  # This will return the number of rows affected (1 if deleted, 0 if nothing found)
-
 async def delete_watchlist_data(user_id: int, movie_id: int):
     # First, check if the entry exists
     check_query = """
@@ -257,3 +245,23 @@ async def delete_watchlist_data(user_id: int, movie_id: int):
         return watchlist_entry['watchlist_id']  # Return the ID of the deleted entry
     
     return None  # No entry found to delete
+
+async def insert_booking(user_id: int, movie_id: int, seat_amount: int):
+    query = """
+        INSERT INTO booking (user_id, movie_id, seat_amount)
+        VALUES (:user_id, :movie_id, :seat_amount)
+        RETURNING booking_id, user_id, movie_id, seat_amount
+    """
+    values = {"user_id": user_id, "movie_id": movie_id, "seat_amount": seat_amount}
+
+    # This will execute the query and return the new booking details
+    return await database.fetch_one(query=query, values=values)
+
+async def get_booking_data(user_id: int):
+    query = """
+        SELECT booking_id, movie_id, seat_amount 
+        FROM booking
+        WHERE user_id = :user_id
+    """
+    values = {"user_id": user_id}
+    return await database.fetch_all(query=query, values=values)

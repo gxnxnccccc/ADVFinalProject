@@ -6,7 +6,8 @@ from database import (
     delete_user_data, get_all_users, get_all_tables, get_current_database,
     update_user_data, insert_movies, get_all_movies, get_movie_by_movie_id,
     update_movie_data, delete_movie_data,
-    insert_watchlist, get_watchlist_data, delete_watchlist_data
+    insert_watchlist, get_watchlist_data, delete_watchlist_data,
+    insert_booking, get_booking_data
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -547,25 +548,6 @@ async def add_watchlist(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating watchlist movie: {str(e)}")
 
-# @router.delete("/watchlist/delete")
-# async def delete_watchlist(
-#     user_id: int,
-#     movie_id: int
-# ):
-#     try:
-#         # Delete the watchlist entry by user_id and movie_id
-#         result = await delete_watchlist_data(user_id=user_id, movie_id=movie_id)
-
-#         if result:
-#             return {"message": "Movie deleted successfully!", "watchlist_id": result}
-#         else:
-#             raise HTTPException(status_code=404, detail="Watchlist entry not found.") # เข้า function นี้ แต่ลบได้จิง
-    
-#     except ValueError:
-#         raise HTTPException(status_code=400, detail="Invalid user_id or movie_id. They must be integers.")
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
-
 @router.delete("/watchlist/delete")
 async def delete_watchlist(
     user_id: int,
@@ -584,3 +566,30 @@ async def delete_watchlist(
         raise HTTPException(status_code=400, detail="Invalid user_id or movie_id. They must be integers.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
+    
+
+@router.get("/booking")
+async def fetch_booking(
+    user_id: int,
+):
+    try:
+        booking = await get_booking_data(user_id=user_id)
+        return {"message": "Booking fetched successfully", "booking": booking}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching bookings: {str(e)}")
+    
+@router.post("/booking/add")
+async def add_booking(
+    user_id: int,
+    movie_id: int,
+    seat_amount: int
+):
+    try:
+        # Call the insert_booking function with seat_amount
+        new_booking = await insert_booking(user_id=user_id, movie_id=movie_id, seat_amount=seat_amount)
+
+        return {"message": "Booking successfully", "booking": new_booking}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user_id, movie_id, or seat_amount. They must be integers.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error booking movie: {str(e)}")
