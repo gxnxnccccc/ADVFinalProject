@@ -137,42 +137,6 @@ async def get_all_movies():
 
     return movies
 
-# async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
-#     query = """
-#     INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
-#     VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating, :image)
-#     RETURNING movie_id, title, description, duration, language, release_date, genre, rating, image
-#     """
-#     values = {
-#         "title": title,
-#         "description": description,
-#         "duration": duration,
-#         "language": language,
-#         "release_date": release_date,
-#         "genre": genre,
-#         "rating": rating,
-#         "image": image
-#     }
-#     return await database.fetch_one(query=query, values=values)
-
-# async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float):
-#     query = """
-#     INSERT INTO movies (title, description, duration, language, release_date, genre, rating)
-#     VALUES (:title, :description, :duration, :language, :release_date, :genre, :rating)
-#     RETURNING movie_id, title, description, duration, language, release_date, genre, rating
-#     """
-#     values = {
-#         "title": title,
-#         "description": description,
-#         "duration": duration,
-#         "language": language,
-#         "release_date": release_date,
-#         "genre": genre,
-#         "rating": rating,
-#         # "image": image
-#     }
-#     return await database.fetch_one(query=query, values=values)
-
 async def insert_movies(title: str, description: str, duration: int, language: str, release_date: str, genre: str, rating: float, image: bytes):
     query = """
     INSERT INTO movies (title, description, duration, language, release_date, genre, rating, image)
@@ -239,3 +203,30 @@ async def delete_movie_data(movie_id: int):
     return await database.execute(query=query, values=values)
 
 # async def watchlists()
+
+async def insert_watchlist(user_id: int, movie_id: int):
+    query = """
+        INSERT INTO watchlists (user_id, movie_id)
+        VALUES (:user_id, :movie_id)
+    """
+    values={"user_id": user_id, "movie_id": movie_id}
+
+    return await database.execute(query=query)
+
+async def get_watchlist_data(user_id: int):
+    query = """
+        SELECT watchlist_id, movie_id 
+        FROM watchlists 
+        WHERE user_id = :user_id
+    """
+    values={"user_id": user_id}
+    
+    return await database.fetch_all(query=query )
+
+async def delete_watchlist_data(watchlist_id: int):
+    query = """
+        DELETE FROM watchlists 
+        WHERE watchlist_id = :watchlist_id
+    """
+    values = {"watchlist_id": watchlist_id}
+    return await database.execute(query=query)
