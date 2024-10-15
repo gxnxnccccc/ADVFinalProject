@@ -2,27 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Button, Container, Grid, Typography, Card, CardContent, CardMedia, IconButton } from '@mui/material';
 import { Box } from '@mui/system';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-
-// const movies = [
-//   { title: 'Deadpool & Wolverine', releaseDate: '2024-10-10', image: '/images/Deadpool_Wolverine.jpg' },
-//   { title: 'Fly Me To The Moon', releaseDate: '2024-10-15', image: '/images/flymetothemoon.jpg' },
-//   { title: 'Transformer ONE', releaseDate: '2024-10-20', image: '/images/TransformerONE.jpg' },
-// ];
+import { useRouter } from 'next/router';
 
 const showtimes = [
   { title: 'Inside Out', time: '12:00 PM', location: 'Cinema 1', seats: 'Available' },
   { title: 'Bad Boys', time: '2:30 PM', location: 'Cinema 2', seats: 'Few Left' },
 ];
 
-
-
 const IndexPage = () => {
   const [movies, setMovies] = useState([]);
-  const [Watchlist, setWatchlist] = useState(new Array(movies.length).fill(false));
+  const [Watchlist, setWatchlist] = useState([]);
+  const router = useRouter();
 
-useEffect(() => {
-  fetchMovies();
-}, []); 
+  useEffect(() => {
+    // Load watchlist from localStorage when the component mounts
+    const storedWatchlist = localStorage.getItem('watchlist');
+    if (storedWatchlist) {
+      setWatchlist(JSON.parse(storedWatchlist));  // Load saved watchlist from localStorage
+    }
+
+    fetchMovies(); // Fetch movies after loading watchlist
+  }, []);
 
   const fetchMovies = async () => {
     try {
@@ -39,27 +39,101 @@ useEffect(() => {
   
       const data = await response.json();
       setMovies(data.movies);
+
+      // If no watchlist exists in localStorage, initialize it based on the number of movies
+      if (!localStorage.getItem('watchlist')) {
+        const initialWatchlist = new Array(data.movies.length).fill(false);
+        setWatchlist(initialWatchlist);
+        localStorage.setItem('watchlist', JSON.stringify(initialWatchlist)); // Save initial watchlist to localStorage
+      }
     } catch (error) {
       console.error("Error fetching movies:", error);
     }
-  }; 
+  };
 
-  const handleWatchlistClick = (index) => { // Renamed function
-    const newWatchlist = [...Watchlist];
-    newWatchlist[index] = !newWatchlist[index];
-    setWatchlist(newWatchlist);
+  const handleWatchlistSubmit = async (movie_id, isInWatchlist, index) => {
+    const user_id = localStorage.getItem('user_id'); // Assuming user_id is stored in localStorage
+
+    if (!user_id) {
+      console.error("User ID not found. Make sure the user is logged in.");
+      return false; // Return false since user ID is missing
+    }
+
+    if (isInWatchlist) {
+      // If the movie is already in the watchlist, call the delete function
+      return await handleWatchlistDelete(movie_id, user_id, index);
+    } else {
+      // Otherwise, add it to the watchlist
+      console.log(`Adding movie ${movie_id} to watchlist for user ${user_id}`);
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/watchlist/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            movie_id: movie_id,
+            user_id: parseInt(user_id),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+
+        const newWatchlist = [...Watchlist];
+        newWatchlist[index] = true; // Set to true because the movie was added
+        setWatchlist(newWatchlist);
+
+        // Save the updated watchlist to localStorage
+        localStorage.setItem('watchlist', JSON.stringify(newWatchlist));
+
+        return true; // Return true for successful addition
+      } catch (error) {
+        console.error("Error adding movie to watchlist:", error);
+        return false; // Return false in case of an error
+      }
+    }
+  };
+
+  const handleWatchlistDelete = async (movie_id, user_id, index) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/watchlist/delete?user_id=${user_id}&movie_id=${movie_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove movie from watchlist");
+      }
+
+      const newWatchlist = [...Watchlist];
+      newWatchlist[index] = false; // Set to false because the movie was removed
+      setWatchlist(newWatchlist);
+
+      // Save the updated watchlist to localStorage
+      localStorage.setItem('watchlist', JSON.stringify(newWatchlist));
+
+      return true; // Successfully removed the movie
+    } catch (error) {
+      console.error("Error removing movie from watchlist:", error);
+      return false; // Return false in case of an error
+    }
   };
 
   return (
     <Box
       sx={{
-        minHeight: '100vh', // or 'auto'
+        minHeight: '100vh',
         height: '100%',
         background: 'linear-gradient(180deg, #a82d2d, #000000)',
         color: '#fff',
         width: '100vw',
         overflowX: 'hidden',
-        fontFamily: 'var(--font-family)', // Use global default font
+        fontFamily: 'var(--font-family)',
       }}
     >
       {/* Featured Movies Section */}
@@ -82,7 +156,7 @@ useEffect(() => {
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
-                      onClick={() => handleWatchlistClick(index)} // continue
+                      onClick={() => handleWatchlistSubmit(movie.movie_id, Watchlist[index], index)} // Passing movie_id and Watchlist state
                       sx={{
                         color: Watchlist[index] ? 'pink' : 'gray',
                       }}

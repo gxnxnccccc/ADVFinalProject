@@ -70,6 +70,10 @@ class MovieUpdateRequest(BaseModel):
     rating: Optional[float] = None
     # image: Optional[bytes] = None
 
+class WatchlistRequest(BaseModel):
+    user_id: int
+    movie_id: int
+
 # class MovieDeleteRequest(BaseModel):
 #     movie_id: int
 
@@ -517,29 +521,20 @@ async def delete_movie(movie_id: int):
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
     
 @router.get("/watchlist")
-async def fetch_watchlist(
-    user_id: int,
-):
+async def fetch_watchlist(user_id: int):
     try:
-        print(1)
-        watchlist = await get_watchlist_data(
-            user_id=user_id
-        )
-
+        watchlist = await get_watchlist_data(user_id=user_id)
         return {"message": "Watchlist fetched successfully", "watchlist": watchlist}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching watchlists: {str(e)}")
     
 @router.post("/watchlist/add")
-async def add_watchlist(
-    user_id: int,
-    movie_id: int
-):
+async def add_watchlist(watchlist: WatchlistRequest):
     try:
         # Call the insert_watchlist function
         new_watchlist = await insert_watchlist(
-            user_id=user_id,
-            movie_id=movie_id
+            watchlist.user_id,
+            watchlist.movie_id
         )
 
         return {"message": "Movie added to watchlist successfully", "watchlist": new_watchlist}
@@ -567,7 +562,6 @@ async def delete_watchlist(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
     
-
 @router.get("/booking")
 async def fetch_booking(
     user_id: int,
