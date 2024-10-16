@@ -73,7 +73,8 @@ const LoginPage = () => {
       // Store JWT token in localStorage
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('username', loginUsername); 
-      localStorage.setItem('user_id', data.user_id); 
+      localStorage.setItem('user_id', data.user_id);
+      localStorage.setItem("watchlist", data.watchlist);
       
       setNotification(data.message);
 

@@ -73,6 +73,8 @@ const UserProfile = () => {
 
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("watchlist");
     useBearStore.getState().setIsLoggedIn(false);
 
     router.push("/");

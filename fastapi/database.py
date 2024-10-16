@@ -215,14 +215,16 @@ async def insert_watchlist(user_id: int, movie_id: int):
     # This will execute the query and return the new watchlist details
     return await database.fetch_one(query=query, values=values)
 
-async def get_watchlist_data(user_id: int, movie_id: int):
-    # print(f"Fetching watchlist for user_id: {user_id}")  # Logging user_id for debugging
-    query = """
-        SELECT watchlist_id FROM watchlists
-        WHERE user_id = :user_id AND movie_id = :movie_id
-    """
-    values = {"user_id": user_id, "movie_id": movie_id}
-    return await database.fetch_all(query=query, values=values)
+async def get_watchlist_data(user_id: int):
+   query = """
+       SELECT w.movie_id, w.watchlist_id, m.title, m.description, m.duration, m.language, 
+              m.release_date, m.genre, m.rating, encode(m.image, 'base64') AS image_base64
+       FROM watchlists w
+       JOIN movies m ON w.movie_id = m.movie_id
+       WHERE w.user_id = :user_id
+   """
+   values = {"user_id": user_id}
+   return await database.fetch_all(query=query, values=values)
 
 async def delete_watchlist_data(user_id: int, movie_id: int):
     # First, check if the entry exists

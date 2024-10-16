@@ -522,12 +522,12 @@ async def delete_movie(movie_id: int):
     
 @router.get("/watchlist")
 async def fetch_watchlist(user_id: int):
-    try:
-        watchlist = await get_watchlist_data(user_id=user_id)
-        return {"message": "Watchlist fetched successfully", "watchlist": watchlist}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching watchlists: {str(e)}")
-    
+   try:
+       watchlist = await get_watchlist_data(user_id=user_id)
+       return {"message": "Watchlist fetched successfully", "watchlist": watchlist}
+   except Exception as e:
+       raise HTTPException(status_code=500, detail=f"Error fetching watchlists: {str(e)}")
+   
 @router.post("/watchlist/add")
 async def add_watchlist(watchlist: WatchlistRequest):
     try:

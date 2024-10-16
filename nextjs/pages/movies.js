@@ -10,11 +10,15 @@ const MovieListPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Load watchlist from localStorage on component mount
     const storedWatchlist = localStorage.getItem('watchlist');
-    if (storedWatchlist) {
-      setWatchlist(JSON.parse(storedWatchlist)); // Load saved watchlist
+    if (storedWatchlist && storedWatchlist !== 'undefined') {
+      setWatchlist(JSON.parse(storedWatchlist));  // Load saved watchlist from localStorage
+    } else {
+      // Initialize watchlist if it doesn't exist
+      localStorage.setItem('watchlist', JSON.stringify([]));
+      setWatchlist([]);  // Set an empty watchlist
     }
+  
     fetchMovies(); // Fetch movies after loading watchlist
   }, []);
 
