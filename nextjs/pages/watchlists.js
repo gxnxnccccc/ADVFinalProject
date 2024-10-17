@@ -156,7 +156,7 @@ const WatchlistPage = () => {
                   <Button
                     variant="contained"
                     fullWidth
-                    onClick={() => router.push(`/booking?title=${encodeURIComponent(movie.title)}`)} // Navigate to booking page with movie title
+                    onClick={() => router.push(`/booking?movie_id=${encodeURIComponent(movie.movie_id)}`)} // Navigate to booking page with movie title
                     sx={{
                       marginTop: 2,
                       backgroundColor: '#000000',

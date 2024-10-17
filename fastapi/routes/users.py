@@ -226,7 +226,7 @@ async def logged_in_users(request: Request):
 
     return {"logged_in_users": logged_in_users}
 
-@router.get("/user/username/{username}")
+@router.get("/user/{username}")
 async def get_user_details_by_username(username: str):
     user_data = await get_user_by_username(username)
     return user_data
