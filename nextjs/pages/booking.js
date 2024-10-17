@@ -4,28 +4,27 @@ import { Container, Typography, TextField, Button, Box, Paper } from '@mui/mater
 
 const BookingPage = () => {
   const router = useRouter();
-  const [Booking, setBooking] = useState([]);
+  const { movie_id } = router.query; // Get movie_id from URL parameters
+  const [booking, setBooking] = useState([]);
+  const [seats, setSeats] = useState(1);
+  const [movieTitle, setMovieTitle] = useState('');
 
   useEffect(() => {
-    fetchBooking();
-  }, []);
+    if (movie_id) {
+      fetchBooking(movie_id); // Fetch booking only if movie_id is available
+    }
+  }, [movie_id]);
 
-  const fetchBooking = async () => {
+  const fetchBooking = async (movie_id) => {
     const user_id = localStorage.getItem('user_id');
-    const movie_id = localStorage.getItem('movie_id');
 
     if (!user_id) {
       console.error("User ID not found. Make sure the user is logged in.");
       return;
     }
 
-    if (!movie_id) {
-      console.error("Movie ID not found.");
-      return;
-    }
-
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/booking?user_id=${user_id}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/booking?user_id=${user_id}&movie_id=${movie_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -38,22 +37,18 @@ const BookingPage = () => {
 
       const data = await response.json();
       setBooking(data.booking);
-      setBooking(data.booking.map(() => true)); 
+      setMovieTitle(data.movie_title); // Assuming movie_title is part of the response
+
     } catch (error) {
       console.error("Error fetching booking:", error);
     }
   };
 
-  const handleBookingSubmit = async (movie_id, seat_amount, index) => {
-   const user_id = localStorage.getItem('user_id');
+  const handleBookingSubmit = async () => {
+    const user_id = localStorage.getItem('user_id');
 
     if (!user_id) {
       console.error("User ID not found. Make sure the user is logged in.");
-      return false;
-    }
-
-    if (!movie_id) {
-      console.error("Movie ID not found");
       return false;
     }
 
@@ -65,16 +60,16 @@ const BookingPage = () => {
         },
         body: JSON.stringify({
           user_id: parseInt(user_id), // Ensure user_id is sent as an integer
-          movie_id: movie_id, // Use the fetched movie_id
-          seat_amount: parseInt(seat_amount)
+          movie_id: parseInt(movie_id), // Use movie_id from database (from URL params)
+          seat_amount: parseInt(seats) // Seats should also be converted to an integer
         }),
       });
 
-      if (!response.ok){
-        throw new Error(response.status)
+      if (!response.ok) {
+        throw new Error(response.status);
       }
-      await fetchBooking(); // Refresh the movie list
-      router.push('/');
+      await fetchBooking(movie_id); // Refresh the booking list
+      router.push('/'); // Navigate to home or another page after successful booking
 
     } catch (error) {
       console.error("Error booking movie:", error);
@@ -109,7 +104,7 @@ const BookingPage = () => {
           }}
         >
           <Typography variant="h4" sx={{ fontFamily: 'Proelium', marginBottom: '1.5rem', textAlign: 'center' }}>
-            Book Tickets for {movie_id.title}
+            Book Tickets for {movieTitle || "the Movie"}
           </Typography>
           <Box
             component="form"
@@ -143,7 +138,7 @@ const BookingPage = () => {
                   backgroundColor: '#333333',
                 },
               }}
-              onClick={() => handleBookingSubmit(movieId, seats)}
+              onClick={handleBookingSubmit}
               fullWidth
             >
               Confirm Booking

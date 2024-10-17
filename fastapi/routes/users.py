@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, Field
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
     delete_user_data, get_all_users, get_all_tables, get_current_database,
-    update_user_data, insert_movies, get_all_movies, get_movie_by_movie_id,
+    update_user_data, insert_movies, get_all_movies, get_movie_id_from_movies,
     update_movie_data, delete_movie_data,
     insert_watchlist, get_watchlist_data, delete_watchlist_data,
     insert_booking, get_booking_data
@@ -69,6 +69,9 @@ class MovieUpdateRequest(BaseModel):
     genre: Optional[str] = None
     rating: Optional[float] = None
     # image: Optional[bytes] = None
+
+class Movie(BaseModel):
+    movie_id: int
 
 class WatchlistRequest(BaseModel):
     user_id: int
@@ -519,6 +522,15 @@ async def delete_movie(movie_id: int):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
+    
+@router.get("/movies/get-id", response_model=Movie)
+async def get_movie_by_id(movie_id: int):
+    movie = await get_movie_id_from_movies(movie_id)
+    
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    return movie
     
 @router.get("/watchlist")
 async def fetch_watchlist(user_id: int):

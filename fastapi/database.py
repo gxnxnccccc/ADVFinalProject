@@ -156,8 +156,12 @@ async def insert_movies(title: str, description: str, duration: int, language: s
     print(query, values)
     return await database.fetch_one(query=query, values=values)
 
-async def get_movie_by_movie_id(movie_id: int):
-    query = "SELECT movie_id, title, description, duration, language, release_date, genre, rating, image FROM movies WHERE title = :title"
+async def get_movie_id_from_movies(movie_id: int):
+    query = """"
+    SELECT movie_id, title, description, duration, language, release_date, genre, rating, image 
+    FROM movies 
+    WHERE movie_id = :movie_id
+    """
     values = {"movie_id": movie_id}
     return await database.fetch_one(query=query, values=values)
 
