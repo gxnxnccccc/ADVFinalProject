@@ -4,7 +4,8 @@ import { Container, Typography, TextField, Button, Box, Paper } from '@mui/mater
 
 const BookingPage = () => {
   const router = useRouter();
-  // const { movie_id } = router.query; // Get movie_id from URL parameters
+  const { movie_id } = router.query; // Get movie_id from URL parameters
+  const [users, setUsers] = useState([]);
   const [movies, setMovies] = useState([]);
   const [booking, setBooking] = useState([]);
   const [seats, setSeats] = useState(1);
@@ -26,7 +27,7 @@ const BookingPage = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/booking?user_id=${user_id}&movie_id=${movie_id}&seat_amount=${seat_amount}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/booking?movie_id=${movie_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +40,7 @@ const BookingPage = () => {
 
       const data = await response.json();
       setBooking(data.booking);
-      setMovieTitle(data.movie_title); // Assuming movie_title is part of the response
+      setMovieID(data.movie_id); 
 
     } catch (error) {
       console.error("Error fetching booking:", error);

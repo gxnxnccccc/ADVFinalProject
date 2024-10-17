@@ -10,16 +10,7 @@ const MovieListPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedWatchlist = localStorage.getItem('watchlist');
-    if (storedWatchlist && storedWatchlist !== 'undefined') {
-      setWatchlist(JSON.parse(storedWatchlist));  // Load saved watchlist from localStorage
-    } else {
-      // Initialize watchlist if it doesn't exist
-      localStorage.setItem('watchlist', JSON.stringify([]));
-      setWatchlist([]);  // Set an empty watchlist
-    }
-  
-    fetchMovies(); // Fetch movies after loading watchlist
+    fetchMovies(); // Fetch movies and then fetch watchlist after loading movies
   }, []);
 
   const fetchMovies = async () => {
@@ -51,56 +42,44 @@ const MovieListPage = () => {
       console.error("User ID not found. Make sure the user is logged in.");
       return;
     }
-  
+
     try {
-      const watchlistResponse = await fetch(`http://127.0.0.1:8000/api/watchlist/${user_id}`, {
+      const watchlistResponse = await fetch(`http://127.0.0.1:8000/api/watchlist?user_id=${user_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (!watchlistResponse.ok) {
         throw new Error("Error fetching watchlist");
       }
-  
+
       const watchlistData = await watchlistResponse.json();
       const watchlistMovieIds = watchlistData.watchlist.map(item => item.movie_id);
-  
-      // Check both movie_id and user_id
-      const watchlistState = movies.map(movie => 
-        watchlistMovieIds.includes(movie.movie_id) && movie.user_id === user_id
-      );
-      
-      setWatchlist(watchlistState); // Update the Watchlist state
-  
-      if (!setWatchlist) {
-        throw new Error("Error fetching watchlist");
-      }
-  
-      // Save the watchlist to localStorage
+
+      // Update the React state and localStorage with the watchlist state
+      const watchlistState = movies.map(movie => watchlistMovieIds.includes(movie.movie_id));
+      setWatchlist(watchlistState);
+
+      // Sync localStorage with the watchlist fetched from the backend
       localStorage.setItem('watchlist', JSON.stringify(watchlistState));
     } catch (error) {
       console.error("Error fetching watchlist:", error);
     }
   };
-  
 
   const handleWatchlistSubmit = async (movie_id, isInWatchlist, index) => {
-    const user_id = localStorage.getItem('user_id'); // Assuming user_id is stored in localStorage
+    const user_id = localStorage.getItem('user_id');
 
     if (!user_id) {
       console.error("User ID not found. Make sure the user is logged in.");
-      return false; // Return false since user ID is missing
+      return false;
     }
 
     if (isInWatchlist) {
-      // If the movie is already in the watchlist, call the delete function
       return await handleWatchlistDelete(movie_id, user_id, index);
     } else {
-      // Otherwise, add it to the watchlist
-      console.log(`Adding movie ${movie_id} to watchlist for user ${user_id}`);
-
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/watchlist/add`, {
           method: 'POST',
@@ -121,13 +100,13 @@ const MovieListPage = () => {
         newWatchlist[index] = true; // Set to true because the movie was added
         setWatchlist(newWatchlist);
 
-        // Save the updated watchlist to localStorage
+        // Update localStorage to keep track of watchlist status
         localStorage.setItem('watchlist', JSON.stringify(newWatchlist));
 
-        return true; // Return true for successful addition
+        return true;
       } catch (error) {
         console.error("Error adding movie to watchlist:", error);
-        return false; // Return false in case of an error
+        return false;
       }
     }
   };
@@ -149,13 +128,13 @@ const MovieListPage = () => {
       newWatchlist[index] = false; // Set to false because the movie was removed
       setWatchlist(newWatchlist);
 
-      // Save the updated watchlist to localStorage
+      // Update localStorage to reflect watchlist removal
       localStorage.setItem('watchlist', JSON.stringify(newWatchlist));
 
-      return true; // Successfully removed the movie
+      return true;
     } catch (error) {
       console.error("Error removing movie from watchlist:", error);
-      return false; // Return false in case of an error
+      return false;
     }
   };
 
@@ -196,10 +175,10 @@ const MovieListPage = () => {
                     <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
                       onClick={() => {
-                        handleWatchlistSubmit(movie.movie_id, Watchlist[index], index); // Trigger backend request with current state
+                        handleWatchlistSubmit(movie.movie_id, Watchlist[index], index);
                       }}
                       sx={{
-                        color: Watchlist[index] ? 'pink' : 'gray', // Toggle color based on state
+                        color: Watchlist[index] ? 'pink' : 'gray',
                       }}
                     >
                       <FavoriteIcon />
@@ -208,11 +187,10 @@ const MovieListPage = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Proelium' }}>
                     Release Date: {movie.release_date}
                   </Typography>
-                  {/* Book Now button styled as requested */}
                   <Button
                     variant="contained"
                     fullWidth
-                    onClick={() => router.push(`/booking?title=${encodeURIComponent(movie.title)}`)} // Navigate to booking page with movie title
+                    onClick={() => router.push(`/booking?movie_id=${encodeURIComponent(movie.movie_id)}`)}
                     sx={{
                       marginTop: 2,
                       backgroundColor: '#000000',
@@ -235,7 +213,7 @@ const MovieListPage = () => {
       {/* Footer Section */}
       <Box sx={{ background: '#000000', color: '#fff', padding: 2, textAlign: 'center', width: '100%', fontFamily: 'Proelium', marginTop: '4rem' }}>
         <Typography variant="body2" sx={{ fontFamily: 'Proelium' }}>
-          © 2024 Movie Ticket Booking. All rights reserved.
+          Â© 2024 Movie Ticket Booking. All rights reserved.
         </Typography>
       </Box>
     </Box>

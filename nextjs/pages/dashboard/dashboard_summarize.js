@@ -1,0 +1,153 @@
+import React, { useEffect, useState } from 'react';
+import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import styled from 'styled-components';
+import DashboardNavigationBar from '../../components/DashboardNavigationBar';
+
+const Dashboard = () => {
+  const [movieSummary, setMovieSummary] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch the movie summary data from the backend
+  useEffect(() => {
+    const fetchMovieSummary = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/dashboard/summary');
+        if (!response.ok) {
+          throw new Error('Failed to fetch movie summary');
+        }
+        const data = await response.json();
+        setMovieSummary(data.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+    fetchMovieSummary();
+  }, []);
+
+  // Calculate total watchlists and bookings
+  const totalWatchlists = movieSummary.reduce((acc, movie) => acc + movie.watchlist_count, 0);
+  const totalBookings = movieSummary.reduce((acc, movie) => acc + movie.booking_count, 0);
+
+  // Find movie with max watchlists
+  const maxWatchlistMovie = movieSummary.reduce(
+    (maxMovie, movie) => (movie.watchlist_count > (maxMovie?.watchlist_count || 0) ? movie : maxMovie),
+    null
+  );
+
+  // Create some sample data for charts
+  const pieData = [
+    { name: 'New Tickets', value: 38 },
+    { name: 'Returned Tickets', value: 62 }
+  ];
+
+  const colors = ['#8884d8', '#82ca9d'];
+
+  return (
+    <>
+      <DashboardNavigationBar />
+      
+      <DashboardContainer>
+        <Header>
+          <h1>Movie Watchlist and Booking Dashboard</h1>
+        </Header>
+
+        {loading && <p>Loading data...</p>}
+        {error && <p>Error: {error}</p>}
+
+        <StatsContainer>
+          <StatBox>
+            <h2>Movie Statistics</h2>
+            <p>Total Movies: {movieSummary.length}</p>
+            <p>Max Watchlist: {maxWatchlistMovie ? `${maxWatchlistMovie.title} (${maxWatchlistMovie.watchlist_count})` : 'N/A'}</p>
+          </StatBox>
+          <StatBox>
+            <h2>Summary</h2>
+            <p>Total Bookings: {totalBookings}</p>
+            <p>Total Watchlists: {totalWatchlists}</p>
+          </StatBox>
+        </StatsContainer>
+
+        <ChartsContainer>
+          {/* Line Chart */}
+          <ChartBox>
+            <h3>Watchlists and Bookings Over Time</h3>
+            <LineChart width={500} height={300} data={movieSummary}>
+              <CartesianGrid stroke="#ccc" />
+              <XAxis dataKey="title" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="watchlist_count" stroke="#a82d2d" />
+              <Line type="monotone" dataKey="booking_count" stroke="#000000" />
+            </LineChart>
+          </ChartBox>
+
+          {/* Bar Chart */}
+          <ChartBox>
+            <h3>Watchlists and Bookings by Movie</h3>
+            <BarChart width={500} height={300} data={movieSummary}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="title" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="watchlist_count" fill="#a82d2d" />
+              <Bar dataKey="booking_count" fill="#000000" />
+            </BarChart>
+          </ChartBox>
+        </ChartsContainer>
+      </DashboardContainer>
+    </>
+  );
+};
+
+// Styled Components for Dark-Themed Dashboard
+const DashboardContainer = styled.div`
+  background-color: ;
+  color: #f0f0f0;
+  padding: 20px;
+  min-height: 100vh;
+`;
+
+const Header = styled.div`
+  text-align: center;
+  margin-bottom: 20px;
+  h1 {
+    color: #f0f0f0;
+  }
+`;
+
+const StatsContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+`;
+
+const StatBox = styled.div`
+  background-color: #333;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  width: 30%;
+  h2 {
+    margin-bottom: 10px;
+  }
+`;
+
+const ChartsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
+const ChartBox = styled.div`
+  background-color: #333;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  width: 32%;
+`;
+
+export default Dashboard;

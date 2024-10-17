@@ -19,7 +19,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/icons-material": "^6.1.3",
     "@mui/lab": "^6.0.0-beta.11",
-    "@mui/material": "^6.1.3",
+    "@mui/material": "^6.1.4",
     "@mui/material-nextjs": "^6.0.1",
     "@mui/x-charts": "^7.19.0",
     "@mui/x-data-grid": "^7.15.0",
@@ -33,6 +33,8 @@
     "next-auth": "^4.24.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "recharts": "^2.13.0",
+    "styled-components": "^6.1.13",
     "sweetalert2": "^11.6.13",
     "tesseract.js": "^4.1.4",
     "zustand": "^4.5.4"

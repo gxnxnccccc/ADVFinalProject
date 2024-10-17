@@ -8,7 +8,9 @@ from database import (
     update_movie_data, delete_movie_data,
     insert_watchlist, get_watchlist_data, delete_watchlist_data,
     insert_booking, get_booking_data,
-    get_user_by_user_id
+    get_user_by_user_id,
+    fetch_movie_summary,
+    get_movies_and_seats_by_user_id_from_booking
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -77,6 +79,11 @@ class MovieUpdateRequest(BaseModel):
 class WatchlistRequest(BaseModel):
     user_id: int
     movie_id: int
+
+class BookingCreateRequest(BaseModel):
+    user_id: int
+    movie_id: int
+    seat_amount: int
 
 # class MovieDeleteRequest(BaseModel):
 #     movie_id: int
@@ -435,17 +442,40 @@ async def fetch_booking(
         raise HTTPException(status_code=500, detail=f"Error fetching bookings: {str(e)}")
     
 @router.post("/booking/add")
-async def add_booking(
-    user_id: int,
-    movie_id: int,
-    seat_amount: int
-):
+async def add_booking(booking: BookingCreateRequest):
     try:
         # Call the insert_booking function with seat_amount
-        new_booking = await insert_booking(user_id=user_id, movie_id=movie_id, seat_amount=seat_amount)
+        new_booking = await insert_booking(
+            user_id=booking.user_id, 
+            movie_id=booking.movie_id, 
+            seat_amount=booking.seat_amount
+            )
 
         return {"message": "Booking successfully", "booking": new_booking}
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid user_id, movie_id, or seat_amount. They must be integers.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error booking movie: {str(e)}")
+    
+@router.get("/dashboard/summary")
+async def get_dashboard_summary():
+    try:
+        results = await fetch_movie_summary()
+        return {"data": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching dashboard summary: {str(e)}")
+    
+@router.get("/user/{user_id}/bookings")
+async def get_user_bookings(user_id: int):
+    try:
+        # Call the function to get the movie_id and seat_amount
+        bookings = await get_movies_and_seats_by_user_id_from_booking(user_id)
+
+        # If no bookings are found, raise a 404 error
+        if not bookings:
+            raise HTTPException(status_code=404, detail="No bookings found for this user")
+
+        return {"user_id": user_id, "bookings": bookings}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching bookings: {str(e)}")

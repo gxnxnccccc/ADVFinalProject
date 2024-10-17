@@ -289,3 +289,33 @@ async def get_booking_data(user_id: int):
     """
     values = {"user_id": user_id}
     return await database.fetch_all(query=query, values=values)
+
+async def fetch_movie_summary():
+    query = """
+    SELECT 
+        m.movie_id, 
+        m.title,
+        COALESCE(w.watchlist_count, 0) AS watchlist_count,
+        COALESCE(b.booking_count, 0) AS booking_count
+    FROM 
+        movies m
+    LEFT JOIN 
+        (SELECT movie_id, COUNT(*) AS watchlist_count 
+         FROM watchlists 
+         GROUP BY movie_id) w ON m.movie_id = w.movie_id
+    LEFT JOIN 
+        (SELECT movie_id, COUNT(*) AS booking_count 
+         FROM booking 
+         GROUP BY movie_id) b ON m.movie_id = b.movie_id;
+    """
+    return await database.fetch_all(query=query)
+
+
+async def get_movies_and_seats_by_user_id_from_booking(user_id: int):
+    query = """
+        SELECT movie_id, seat_amount 
+        FROM booking 
+        WHERE user_id = :user_id;
+    """
+    values = {"user_id": user_id}
+    return await database.fetch_all(query=query, values=values)

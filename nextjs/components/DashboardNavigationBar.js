@@ -33,6 +33,28 @@ const DashboardNavigationBar = () => {
 
           <Box sx={{ flexGrow: 1 }} />
 
+          {/* Links to Summary */}
+          <Link href="/dashboard/dashboard_summarize" passHref>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "#ffffff",    // White color
+                padding: "8px 16px",
+                fontFamily: "Proelium", // Apply Proelium font
+                cursor: "pointer",
+                textDecoration: "none", // No underline
+                marginRight: "20px",
+                '&:hover': {
+                  color: "#f1c40f",   // Yellow text on hover
+                },
+              }}
+            >
+              Summary
+            </Typography>
+          </Link>
+
           {/* Links to Movies */}
           <Link href="/dashboard/dashboard_movies" passHref>
             <Typography
