@@ -34,13 +34,17 @@ export default function DashboardMovies() {
           'Content-Type': 'application/json',
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Error fetching movies");
       }
-
+  
       const data = await response.json();
-      setMovies(data.movies);
+  
+      // Sort movies by movie_id before setting the state
+      const sortedMovies = data.movies.sort((a, b) => a.movie_id - b.movie_id);
+  
+      setMovies(sortedMovies);
     } catch (error) {
       console.error("Error fetching movies:", error);
     }

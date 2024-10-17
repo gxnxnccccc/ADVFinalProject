@@ -51,7 +51,7 @@ const MovieListPage = () => {
       console.error("User ID not found. Make sure the user is logged in.");
       return;
     }
-
+  
     try {
       const watchlistResponse = await fetch(`http://127.0.0.1:8000/api/watchlist/${user_id}`, {
         method: 'GET',
@@ -59,24 +59,32 @@ const MovieListPage = () => {
           'Content-Type': 'application/json',
         },
       });
-
+  
       if (!watchlistResponse.ok) {
         throw new Error("Error fetching watchlist");
       }
-
+  
       const watchlistData = await watchlistResponse.json();
       const watchlistMovieIds = watchlistData.watchlist.map(item => item.movie_id);
-
-      // Set Watchlist state to true for movies in the user's watchlist
-      const watchlistState = movies.map(movie => watchlistMovieIds.includes(movie.movie_id));
+  
+      // Check both movie_id and user_id
+      const watchlistState = movies.map(movie => 
+        watchlistMovieIds.includes(movie.movie_id) && movie.user_id === user_id
+      );
+      
       setWatchlist(watchlistState); // Update the Watchlist state
-
+  
+      if (!setWatchlist) {
+        throw new Error("Error fetching watchlist");
+      }
+  
       // Save the watchlist to localStorage
       localStorage.setItem('watchlist', JSON.stringify(watchlistState));
     } catch (error) {
       console.error("Error fetching watchlist:", error);
     }
   };
+  
 
   const handleWatchlistSubmit = async (movie_id, isInWatchlist, index) => {
     const user_id = localStorage.getItem('user_id'); // Assuming user_id is stored in localStorage

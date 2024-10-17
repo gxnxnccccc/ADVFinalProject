@@ -39,9 +39,20 @@ async def get_all_users():
     user_data = await database.fetch_all(query=query)
     return user_data
 
+async def get_all_users():
+    query = "SELECT * FROM users"
+    users = await database.fetch_all(query=query)
+
+    return users
+
 async def get_user_by_username(username: str):
     query = "SELECT user_id, username, email, password, gender, age, phone_number FROM users WHERE username = :username"
     values = {"username": username}
+    return await database.fetch_one(query=query, values=values)
+
+async def get_user_by_user_id(user_id: int):
+    query = "SELECT username, email, password, gender, age, phone_number FROM users WHERE user_id = :user_id"
+    values = {"user_id": user_id}
     return await database.fetch_one(query=query, values=values)
 
 async def get_admin_by_username_password(username: str, password_hash: str):
@@ -156,14 +167,22 @@ async def insert_movies(title: str, description: str, duration: int, language: s
     print(query, values)
     return await database.fetch_one(query=query, values=values)
 
-async def get_movie_id_from_movies(movie_id: int):
-    query = """"
-    SELECT movie_id, title, description, duration, language, release_date, genre, rating, image 
+async def get_movie_from_movie_id(movie_id: int):
+    query = """
+    SELECT title, description, duration, language, release_date, genre, rating, image 
     FROM movies 
     WHERE movie_id = :movie_id
     """
     values = {"movie_id": movie_id}
-    return await database.fetch_one(query=query, values=values)
+    movie_data = await database.fetch_one(query=query, values=values)
+
+    # Check if movie_data is not None and process the image
+    if movie_data and movie_data['image']:
+        # Convert the binary image data to base64
+        movie_data = dict(movie_data)  # Convert to a mutable dictionary
+        movie_data['image'] = base64.b64encode(movie_data['image']).decode('utf-8')
+
+    return movie_data
 
 async def update_movie_data(movie_id: int, title: str, description: Optional[str], duration: Optional[str], language: Optional[str], release_date: Optional[str], genre: Optional[str], rating: Optional[str]):
     values = {}

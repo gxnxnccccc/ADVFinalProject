@@ -55,8 +55,8 @@ const DashboardNavigationBar = () => {
             </Typography>
           </Link>
 
-          {/* Links to Reports */}
-          <Link href="/dashboard/dashboard_reports" passHref>
+          {/* Links to Users */}
+          <Link href="/dashboard/dashboard_users" passHref>
             <Typography
               variant="body1"
               sx={{
@@ -73,7 +73,7 @@ const DashboardNavigationBar = () => {
                 },
               }}
             >
-              Reports
+              Users
             </Typography>
           </Link>
 

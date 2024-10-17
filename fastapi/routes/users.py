@@ -4,10 +4,11 @@ from pydantic import BaseModel, EmailStr, Field
 from database import (
     insert_user, get_user_by_username, get_admin_by_username_password,
     delete_user_data, get_all_users, get_all_tables, get_current_database,
-    update_user_data, insert_movies, get_all_movies, get_movie_id_from_movies,
+    update_user_data, insert_movies, get_all_movies, get_movie_from_movie_id,
     update_movie_data, delete_movie_data,
     insert_watchlist, get_watchlist_data, delete_watchlist_data,
-    insert_booking, get_booking_data
+    insert_booking, get_booking_data,
+    get_user_by_user_id
 )
 from fastapi_login import LoginManager
 import bcrypt
@@ -70,8 +71,8 @@ class MovieUpdateRequest(BaseModel):
     rating: Optional[float] = None
     # image: Optional[bytes] = None
 
-class Movie(BaseModel):
-    movie_id: int
+# class Movie(BaseModel):
+#     movie_id: int
 
 class WatchlistRequest(BaseModel):
     user_id: int
@@ -194,6 +195,16 @@ async def check_cookie(request: Request):
         return {"message": "Cookie is set", "cookie_value": cookie_value}
     else:
         raise HTTPException(status_code=404, detail="Cookie not found")
+    
+@router.get("/users")
+async def fetch_users():
+    try:
+        print(1)
+        users = await get_all_users()
+        print(users)
+        return {"message": "Users fetched successfully", "users": users}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
 
 @router.get("/logged-in-users")
 async def logged_in_users(request: Request):
@@ -208,9 +219,14 @@ async def logged_in_users(request: Request):
 
     return {"logged_in_users": logged_in_users}
 
-@router.get("/user/{username}")
-async def get_user_details(username: str):
+@router.get("/user/username/{username}")
+async def get_user_details_by_username(username: str):
     user_data = await get_user_by_username(username)
+    return user_data
+
+@router.get("/user/id/{user_id}")
+async def get_user_details_by_user_id(user_id: int):
+    user_data = await get_user_by_user_id(user_id)
     return user_data
 
 @router.get("/protected-route")
@@ -290,168 +306,6 @@ async def image_to_text(image_file: UploadFile) -> str:
     except Exception as e:
         print(f"An error occurred: {e}")
         return ""
-    
-# @router.post("/movies/add")
-# async def add_movie(movie: MovieCreateRequest):
-#     try:
-#         # Validate rating value
-#         if movie.rating < 0 or movie.rating > 10:
-#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
-
-#         # Validate image URL format
-#         if not movie.image.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-#             raise HTTPException(status_code=400, detail="Invalid image URL. Must be a direct link to an image file (e.g., .jpg, .png).")
-
-#         text_image = await image_to_text(movie.image)
-#         print(text_image)
-
-#         if not text_image:
-#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
-
-#         # Call the insert_movies function to add the movie to the database
-#         new_movie = await insert_movies(
-#             title=movie.title,
-#             description=movie.description,
-#             duration=movie.duration,
-#             language=movie.language,
-#             release_date=movie.release_date,
-#             genre=movie.genre,
-#             rating=movie.rating,
-#             image=psycopg2.binary(movie.image)
-#         )
-
-#         # Return the newly created movie data
-#         return {"message": "Movie created successfully", "movie": new_movie}
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
-    
-# @router.post("/movies/add")
-# async def add_movie(
-#     title: str,
-#     description: str,
-#     duration: int,
-#     language: str,
-#     release_date: str,
-#     genre: str,
-#     rating: Decimal = Field(..., gt=0, lt=10, max_digits=3, decimal_places=1),
-#     image: UploadFile = File(...)
-# ):
-#     try:
-#         # Validate rating value
-#         if rating < 0 or rating > 10:
-#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
-
-#         # Read the image file
-#         image_data = await image.read()
-#         text_image = await image_to_text(image)
-
-#         if not text_image:
-#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
-
-#         # Call the insert_movies function to add the movie to the database
-#         new_movie = await insert_movies(
-#             title=title,
-#             description=description,
-#             duration=duration,
-#             language=language,
-#             release_date=release_date,
-#             genre=genre,
-#             rating=rating,
-#             image=image_data  # Store the binary data
-#         )
-
-#         # Return the newly created movie data
-#         return {"message": "Movie created successfully", "movie": new_movie}
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
-
-# @router.post("/movies/add")
-# async def add_movie(
-
-#     movie: MovieCreateRequest,
-
-#     title: str = Form(...),
-#     description: str = Form(...),
-#     duration: int = Form(...),
-#     language: str = Form(...),
-#     release_date: str = Form(...),
-#     genre: str = Form(...),
-#     rating: float = Form(...),
-#     image: UploadFile = File(...)
-# ):
-#     print("Received data:", movie)
-#     try:
-#         # Validate rating value
-#         if rating < 0 or rating > 10:
-#             raise HTTPException(status_code=400, detail="Rating must be between 0 and 10.")
-
-#         # Validate the image file type
-#         if not image.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-#             raise HTTPException(status_code=400, detail="Invalid image file. Must be an image file (e.g., .jpg, .png).")
-
-#         # Read the image file content as binary
-#         file_content = await image.read()
-
-#         # If you have a function `image_to_text`, you need to pass the binary content, not the URL
-#         text_image = await image_to_text(file_content)
-#         print(text_image)
-
-#         if not text_image:
-#             raise HTTPException(status_code=400, detail="No text could be extracted from the image.")
-
-#         # Call the insert_movies function to add the movie to the database
-#         new_movie = await insert_movies(
-#             title=title,
-#             description=description,
-#             duration=duration,
-#             language=language,
-#             release_date=release_date,
-#             genre=genre,
-#             rating=rating,
-#             image=psycopg2.Binary(file_content)  # Store binary data in the database
-#         )
-
-#         # Return the newly created movie data
-#         return {"message": "Movie created successfully", "movie": new_movie}
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
-    
-# @router.post("/movies/add")
-# async def add_movie(
-#     title: str = Form(...),
-#     description: str = Form(...),
-#     duration: int = Form(...),
-#     language: str = Form(...),
-#     release_date: str = Form(...),
-#     genre: str = Form(...),
-#     rating: float = Form(...),
-#     image: UploadFile = File(...)
-# ):
-#     try:
-#         # Read the file content as binary
-#         file_content = await image.read()
-        
-#         # Call the insert_movies function (ensure this function is working as expected)
-#         new_movie = await insert_movies(
-#             title=title,
-#             description=description,
-#             duration=duration,
-#             language=language,
-#             release_date=release_date,
-#             genre=genre,
-#             rating=rating,
-#             image=file_content  # Storing as binary data
-#         )
-        
-#         return {"message": "Movie created successfully", "movie": new_movie}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error creating movie: {str(e)}")
 
 @router.post("/movies/add")
 async def add_movie(
@@ -523,14 +377,10 @@ async def delete_movie(movie_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting movie: {str(e)}")
     
-@router.get("/movies/get-id", response_model=Movie)
+@router.get("/movies/id/{movie_id}")
 async def get_movie_by_id(movie_id: int):
-    movie = await get_movie_id_from_movies(movie_id)
-    
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
-    
-    return movie
+    movie_data = await get_movie_from_movie_id(movie_id)
+    return movie_data
     
 @router.get("/watchlist")
 async def fetch_watchlist(user_id: int):

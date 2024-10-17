@@ -4,18 +4,20 @@ import { Container, Typography, TextField, Button, Box, Paper } from '@mui/mater
 
 const BookingPage = () => {
   const router = useRouter();
-  const { movie_id } = router.query; // Get movie_id from URL parameters
+  // const { movie_id } = router.query; // Get movie_id from URL parameters
+  const [movies, setMovies] = useState([]);
   const [booking, setBooking] = useState([]);
   const [seats, setSeats] = useState(1);
   const [movieTitle, setMovieTitle] = useState('');
 
   useEffect(() => {
-    if (movie_id) {
-      fetchBooking(movie_id); // Fetch booking only if movie_id is available
+    if (movies) {
+      fetchBooking(movies); // Fetch booking only if movie_id is available
     }
-  }, [movie_id]);
+  }, [movies]);
+  console.log(movies);
 
-  const fetchBooking = async (movie_id) => {
+  const fetchBooking = async (movies) => {
     const user_id = localStorage.getItem('user_id');
 
     if (!user_id) {
@@ -24,7 +26,7 @@ const BookingPage = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/booking?user_id=${user_id}&movie_id=${movie_id}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/booking?user_id=${user_id}&movie_id=${movie_id}&seat_amount=${seat_amount}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
