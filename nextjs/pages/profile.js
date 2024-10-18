@@ -149,7 +149,7 @@ const UserProfile = () => {
           >
             EDIT PROFILE
           </Button>
-          <Button
+          {/* <Button
             variant="outlined"
             color="error"
             onClick={handleDeleteAccount}
@@ -160,7 +160,7 @@ const UserProfile = () => {
             }}
           >
             DELETE ACCOUNT
-          </Button>
+          </Button> */}
           <Button
             variant="contained"
             color="secondary"
