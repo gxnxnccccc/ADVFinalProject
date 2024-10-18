@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AppBar, Toolbar, Button, Container, Grid, Typography, Card, CardContent, CardMedia, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Button, Container, Typography, Card, CardContent, CardMedia, IconButton } from '@mui/material';
 import { Box } from '@mui/system';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/router';
@@ -106,57 +106,77 @@ const WatchlistPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',  // Ensures the content takes full height
         background: 'linear-gradient(180deg, #a82d2d, #000000)',
         color: '#fff',
         width: '100vw',
         overflowX: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        paddingTop: '4rem',
         fontFamily: 'var(--font-family)',
       }}
     >
       {/* Watchlist Movies Section */}
-      <Container sx={{ marginTop: '0rem', marginBottom: '4rem' }} maxWidth="md">
+      <Container sx={{ flex: '1', marginTop: '4rem', marginBottom: '4rem', width: '100%' }} maxWidth="lg">
         <Typography variant="h4" sx={{ paddingTop: '2rem', fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
           Watchlists
         </Typography>
-        <Grid container spacing={4} justifyContent="center">
+
+        {/* Horizontal Scroll Section */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            overflowX: 'auto',  // Enables horizontal scrolling
+            scrollBehavior: 'smooth',
+            justifyContent: 'flex-start',  // Keeps the movie cards aligned to the start
+            paddingBottom: '2rem',
+            width: '100%',
+            maxWidth: '100%',  // Constrain the visible area to fit 3 movie cards
+            '&::-webkit-scrollbar': {
+              height: '8px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: '#888',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: '#555',
+            },
+          }}
+        >
           {allWatchlist.map((movie, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+            <Box key={index} sx={{ flex: '0 0 auto', paddingRight: '1rem', width: '300px' }}>
               <Card>
-              <CardMedia
-                component="img"
-                height="350"
-                image={`data:image/jpg;base64,${movie.image_base64}`} // Corrected the attribute value placement
-                alt={movie.title} // Correct use of movie title
-              />
+                <CardMedia
+                  component="img"
+                  height="350"
+                  image={`data:image/jpg;base64,${movie.image_base64}`}
+                  alt={movie.title}
+                />
                 <CardContent>
                   {/* Title and Heart Button in the Same Row */}
                   <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>  {/* Changed to movie.title */}
+                    <Typography variant="h6" sx={{ fontFamily: 'Proelium' }}>{movie.title}</Typography>
                     <IconButton
                       onClick={() => {
-                        handleWatchlistSubmit(movie.movie_id, Watchlist[index], index); // Trigger backend request with current state
+                        handleWatchlistSubmit(movie.movie_id, Watchlist[index], index);
                       }}
                       sx={{
-                        color: Watchlist[index] ? 'pink' : 'gray', // Toggle color based on state
+                        color: Watchlist[index] ? 'pink' : 'gray',
                       }}
                     >
                       <FavoriteIcon />
                     </IconButton>
                   </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'Proelium' }}>
-                  Release Date: {movie.release_date}
+                    Release Date: {movie.release_date}
                   </Typography>
                   {/* Book Now button */}
                   <Button
                     variant="contained"
                     fullWidth
-                    onClick={() => router.push(`/booking?movie_id=${encodeURIComponent(movie.movie_id)}`)} // Navigate to booking page with movie title
+                    onClick={() => router.push(`/booking?movie_id=${encodeURIComponent(movie.movie_id)}`)}
                     sx={{
                       marginTop: 2,
                       backgroundColor: '#000000',
@@ -171,13 +191,23 @@ const WatchlistPage = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Container>
 
       {/* Footer Section */}
-      <Box sx={{ background: '#000000', color: '#fff', padding: 2, textAlign: 'center', width: '100%', fontFamily: 'Proelium', marginTop: '4rem' }}>
+      <Box
+        sx={{
+          background: '#000000',
+          color: '#fff',
+          padding: 2,
+          textAlign: 'center',
+          width: '100%',
+          fontFamily: 'Proelium',
+          marginTop: 'auto',  // Push footer to the bottom
+        }}
+      >
         <Typography variant="body2" sx={{ fontFamily: 'Proelium' }}>
           © 2024 Movie Ticket Booking. All rights reserved.
         </Typography>

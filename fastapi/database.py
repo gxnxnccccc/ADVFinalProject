@@ -281,14 +281,32 @@ async def insert_booking(user_id: int, movie_id: int, seat_amount: int):
     # This will execute the query and return the new booking details
     return await database.fetch_one(query=query, values=values)
 
+# async def get_booking_data(user_id: int):
+#     query = """
+#         SELECT booking_id, movie_id, seat_amount 
+#         FROM booking
+#         WHERE user_id = :user_id
+#     """
+#     values = {"user_id": user_id}
+#     return await database.fetch_all(query=query, values=values)
+
 async def get_booking_data(user_id: int):
     query = """
-        SELECT booking_id, movie_id, seat_amount 
-        FROM booking
-        WHERE user_id = :user_id
+        SELECT 
+            b.booking_id, 
+            b.movie_id, 
+            b.seat_amount,
+            m.title,
+            m.release_date,
+            encode(m.image, 'base64') AS image_base64
+        FROM booking b
+        JOIN movies m ON b.movie_id = m.movie_id
+        WHERE b.user_id = :user_id
     """
     values = {"user_id": user_id}
     return await database.fetch_all(query=query, values=values)
+
+
 
 async def fetch_movie_summary():
     query = """

@@ -107,16 +107,18 @@ const Dashboard = () => {
 // Styled Components for Dark-Themed Dashboard
 const DashboardContainer = styled.div`
   background-color: ;
-  color: #f0f0f0;
-  padding: 20px;
+  color: #000000;
+  padding: 60px 20px 20px 20px; // Adds top padding to push down everything
   min-height: 100vh;
 `;
+
 
 const Header = styled.div`
   text-align: center;
   margin-bottom: 20px;
   h1 {
     color: #f0f0f0;
+    letter-spacing: 2px; // Adds spacing between letters
   }
 `;
 
@@ -124,30 +126,47 @@ const StatsContainer = styled.div`
   display: flex;
   justify-content: space-around;
   margin-bottom: 20px;
+  gap: 20px; // Add some space between the StatBoxes
+  flex-wrap: wrap; // Ensures they wrap if necessary
 `;
 
 const StatBox = styled.div`
-  background-color: #333;
+  background-color: #D3D3D3;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-  width: 30%;
+  flex-basis: 30%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 250px;
   h2 {
     margin-bottom: 10px;
+    letter-spacing: 1.5px; // Adds spacing between letters
+  }
+  p {
+    letter-spacing: 1px; // Adds spacing between letters for paragraphs
   }
 `;
 
 const ChartsContainer = styled.div`
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap; // Ensures the charts wrap when the screen size is small
+  gap: 20px; // Adds space between charts
 `;
 
 const ChartBox = styled.div`
-  background-color: #333;
+  background-color: #D3D3D3;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-  width: 32%;
+  flex-basis: 32%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 300px;
+  h3 {
+    letter-spacing: 1.5px; // Adds spacing between letters for chart titles
+  }
 `;
 
 export default Dashboard;

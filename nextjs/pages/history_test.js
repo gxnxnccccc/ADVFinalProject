@@ -50,7 +50,7 @@ const BookingHistoryPage = () => {
       }}
     >
       {/* Main Content Section */}
-      <Container sx={{ flex: '1', marginTop: '4rem', marginBottom: '4rem', width: '100%' }} maxWidth="lg">
+      <Container sx={{ flex: '1', marginTop: '5rem', marginBottom: '4rem', width: '100%' }} maxWidth="lg">
         <Typography variant="h4" sx={{ paddingTop: '2rem', fontFamily: 'Proelium', marginBottom: '2rem', textAlign: 'center' }}>
           Booking History
         </Typography>
